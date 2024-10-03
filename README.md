@@ -5,3 +5,5 @@
 
 
 #### To know more visit:  [Website](https://codesourcerer.webflow.io/)
+
+#### Proposal: [Slides](https://docs.google.com/presentation/d/1bkRmrLHOkwKDrVaksg7pQV5RSit0jxG1Tvpl_AGFNko/edit?usp=sharing)
