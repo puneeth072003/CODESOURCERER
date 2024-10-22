@@ -54,7 +54,7 @@ func main() {
 
 	// Start the server
 	router := gin.Default()
-	router.GET("/ping", controllers.Pong)               // test route
+	router.GET("/code", controllers.Code)               // test route
 	router.POST("/webhook", controllers.WebhookHandler) // checking for push events
 	router.Run(":3000")
 }
