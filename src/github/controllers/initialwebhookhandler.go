@@ -110,7 +110,7 @@ func WebhookHandler(c *gin.Context) {
 				mergeData["files"] = append(mergeData["files"].([]map[string]interface{}), map[string]interface{}{
 					"path":         filePath,
 					"content":      fileContent,
-					"dependencies": fileDependencies,
+					"dependencies": formatDependencies(fileDependencies, repoOwner, repoName, commitSHA),
 				})
 
 				log.Printf("Processed file: %s with dependencies: %v", filePath, fileDependencies)
@@ -169,4 +169,24 @@ func filterDependenciesForFile(filePath string, dependencies map[string][]string
 	// Default to no dependencies if not specified
 	log.Printf("No specific dependencies found for file: %s. Using the file itself.", filePath)
 	return []string{}
+}
+
+// formatDependencies converts dependencies into a detailed slice with name and content.
+func formatDependencies(dependencies []string, owner, repo, commitSHA string) []map[string]string {
+	var formattedDependencies []map[string]string
+
+	for _, dependency := range dependencies {
+		depContent, err := FetchFileContentFromGitHub(owner, repo, commitSHA, dependency)
+		if err != nil {
+			log.Printf("Unable to fetch content for dependency %s: %v", dependency, err)
+			depContent = "Error fetching content"
+		}
+
+		formattedDependencies = append(formattedDependencies, map[string]string{
+			"name":    dependency,
+			"content": depContent,
+		})
+	}
+
+	return formattedDependencies
 }
