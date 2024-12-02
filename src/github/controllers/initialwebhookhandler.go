@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 )
@@ -46,27 +47,10 @@ func WebhookHandler(c *gin.Context) {
 
 			mergeID := fmt.Sprintf("merge_%s_%d", commitSHA, pullRequestNumber)
 
-			// Fetch PR comment to parse dependencies and context
-			// prComment, err := FetchPullRequestComment(repoOwner, repoName, pullRequestNumber)
-			// if err != nil {
-			// 	log.Printf("Unable to fetch pull request comment: %v", err)
-			// } else if prComment != "" {
-			// 	log.Printf("PR Comment: %s", prComment)
-			// } else {
-			// 	log.Println("No pull request comment found")
-			// }
-
-			// dependencies, context := ParseCommentForDependencies(prComment)
-			// log.Printf("Dependencies from PR Comment: %v", dependencies)
-			// log.Printf("Context: %s", context)
-
+			// Fetch PR description and dependencies
 			prDescription, err := FetchPullRequestDescription(repoOwner, repoName, pullRequestNumber)
 			if err != nil {
 				log.Printf("Unable to fetch pull request description: %v", err)
-			} else if prDescription != "" {
-				log.Printf("PR Description: %s", prDescription)
-			} else {
-				log.Println("No pull request description found")
 			}
 
 			dependencies, context := ParsePRDescription(prDescription)
@@ -81,7 +65,6 @@ func WebhookHandler(c *gin.Context) {
 				"files":        []map[string]interface{}{},
 			}
 
-			// Fetch changed files from the PR
 			changedFiles, err := fetchPullRequestFiles(repoOwner, repoName, pullRequestNumber)
 			if err != nil {
 				log.Printf("Unable to fetch changed files: %v", err)
@@ -91,35 +74,49 @@ func WebhookHandler(c *gin.Context) {
 				return
 			}
 
-			// Process each changed file
+			// Use WaitGroup to wait for all file processing
+			var wg sync.WaitGroup
+			fileResults := make(chan map[string]interface{}, len(changedFiles))
+
 			for _, file := range changedFiles {
-				filePath := file["filename"].(string)
+				wg.Add(1)
 
-				// Fetch file content
-				fileContent, err := FetchFileContentFromGitHub(repoOwner, repoName, commitSHA, filePath)
-				if err != nil {
-					log.Printf("Unable to fetch file content for %s: %v", filePath, err)
-					continue
-				}
+				go func(file map[string]interface{}) {
+					defer wg.Done()
 
-				// Match dependencies for this file
-				fileDependencies := filterDependenciesForFile(filePath, dependencies)
+					filePath := file["filename"].(string)
+					fileContent, err := FetchFileContentFromGitHub(repoOwner, repoName, commitSHA, filePath)
+					if err != nil {
+						log.Printf("Unable to fetch file content for %s: %v", filePath, err)
+						fileContent = "Error fetching content"
+					}
 
-				fmt.Printf("################### File: %s, Dependencies: %v\n", filePath, fileDependencies)
+					fileDependencies := filterDependenciesForFile(filePath, dependencies)
+					formattedDeps := formatDependencies(fileDependencies, repoOwner, repoName, commitSHA)
 
-				mergeData["files"] = append(mergeData["files"].([]map[string]interface{}), map[string]interface{}{
-					"path":         filePath,
-					"content":      fileContent,
-					"dependencies": formatDependencies(fileDependencies, repoOwner, repoName, commitSHA),
-				})
-
-				log.Printf("Processed file: %s with dependencies: %v", filePath, fileDependencies)
+					fileResults <- map[string]interface{}{
+						"path":         filePath,
+						"content":      fileContent,
+						"dependencies": formattedDeps,
+					}
+				}(file)
 			}
 
-			c.JSON(http.StatusOK, gin.H{
+			wg.Wait()
+			close(fileResults)
+
+			// Collect all file results
+			for result := range fileResults {
+				mergeData["files"] = append(mergeData["files"].([]map[string]interface{}), result)
+			}
+
+			preprocessedData := gin.H{
 				"message": "Pull request merged into 'testing' branch and files processed",
 				"data":    mergeData,
-			})
+			}
+
+			fmt.Println(preprocessedData)
+			c.JSON(http.StatusOK, preprocessedData)
 		} else {
 			c.Status(http.StatusNoContent)
 		}
