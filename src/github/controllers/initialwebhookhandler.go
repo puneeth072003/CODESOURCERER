@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 )
@@ -51,21 +50,39 @@ func WebhookHandler(c *gin.Context) {
 			prDescription, err := FetchPullRequestDescription(repoOwner, repoName, pullRequestNumber)
 			if err != nil {
 				log.Printf("Unable to fetch pull request description: %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"message": "Unable to fetch pull request description",
+				})
+				return
 			}
 
 			dependencies, context := ParsePRDescription(prDescription)
 			log.Printf("Dependencies from PR Description: %v", dependencies)
 			log.Printf("Context: %s", context)
 
-			mergeData := map[string]interface{}{
-				"merge_id":     mergeID,
-				"commit_sha":   commitSHA,
-				"pull_request": pullRequestNumber,
-				"context":      context,
-				"files":        []map[string]interface{}{},
+			// Prepare the JSON response
+			responseData := struct {
+				MergeID     string `json:"merge_id"`
+				CommitSHA   string `json:"commit_sha"`
+				PullRequest int    `json:"pull_request"`
+				Context     string `json:"context"`
+				Files       []struct {
+					Path         string `json:"path"`
+					Content      string `json:"content"`
+					Dependencies []struct {
+						Name    string `json:"name"`
+						Content string `json:"content"`
+					} `json:"dependencies"`
+				} `json:"files"`
+			}{
+				MergeID:     mergeID,
+				CommitSHA:   commitSHA,
+				PullRequest: pullRequestNumber,
+				Context:     context,
 			}
 
-			changedFiles, err := fetchPullRequestFiles(repoOwner, repoName, pullRequestNumber)
+			// Fetch files changed in the PR
+			changedFiles, err := FetchPullRequestFiles(repoOwner, repoName, pullRequestNumber)
 			if err != nil {
 				log.Printf("Unable to fetch changed files: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{
@@ -74,116 +91,68 @@ func WebhookHandler(c *gin.Context) {
 				return
 			}
 
-			// Use WaitGroup to wait for all file processing
-			var wg sync.WaitGroup
-			fileResults := make(chan map[string]interface{}, len(changedFiles))
-
+			// Synchronous processing of files and dependencies
 			for _, file := range changedFiles {
-				wg.Add(1)
+				filePath := file["filename"].(string)
+				fileContent, err := FetchFileContentFromGitHub(repoOwner, repoName, commitSHA, filePath)
+				if err != nil {
+					log.Printf("Unable to fetch file content for %s: %v", filePath, err)
+					fileContent = "Error fetching content"
+				} else {
+					log.Printf("Successfully fetched content for file: %s", filePath)
+				}
 
-				go func(file map[string]interface{}) {
-					defer wg.Done()
+				fileDependencies := FilterDependenciesForFile(filePath, dependencies)
+				var formattedDeps []struct {
+					Name    string `json:"name"`
+					Content string `json:"content"`
+				}
 
-					filePath := file["filename"].(string)
-					fileContent, err := FetchFileContentFromGitHub(repoOwner, repoName, commitSHA, filePath)
+				for _, dep := range fileDependencies {
+					depContent, err := FetchFileContentFromGitHub(repoOwner, repoName, commitSHA, dep)
 					if err != nil {
-						log.Printf("Unable to fetch file content for %s: %v", filePath, err)
-						fileContent = "Error fetching content"
+						log.Printf("Unable to fetch content for dependency %s: %v", dep, err)
+						depContent = "Error fetching content"
+					} else {
+						log.Printf("Successfully fetched content for dependency: %s", dep)
 					}
+					formattedDeps = append(formattedDeps, struct {
+						Name    string `json:"name"`
+						Content string `json:"content"`
+					}{
+						Name:    dep,
+						Content: depContent,
+					})
+				}
 
-					fileDependencies := filterDependenciesForFile(filePath, dependencies)
-					formattedDeps := formatDependencies(fileDependencies, repoOwner, repoName, commitSHA)
-
-					fileResults <- map[string]interface{}{
-						"path":         filePath,
-						"content":      fileContent,
-						"dependencies": formattedDeps,
-					}
-				}(file)
+				responseData.Files = append(responseData.Files, struct {
+					Path         string `json:"path"`
+					Content      string `json:"content"`
+					Dependencies []struct {
+						Name    string `json:"name"`
+						Content string `json:"content"`
+					} `json:"dependencies"`
+				}{
+					Path:         filePath,
+					Content:      fileContent,
+					Dependencies: formattedDeps,
+				})
 			}
 
-			wg.Wait()
-			close(fileResults)
-
-			// Collect all file results
-			for result := range fileResults {
-				mergeData["files"] = append(mergeData["files"].([]map[string]interface{}), result)
+			jsonData, err := json.MarshalIndent(responseData, "", "  ")
+			if err != nil {
+				fmt.Println("Error:", err)
+				return
 			}
 
-			preprocessedData := gin.H{
-				"message": "Pull request merged into 'testing' branch and files processed",
-				"data":    mergeData,
-			}
+			fmt.Println(string(jsonData))
 
-			fmt.Println(preprocessedData)
-			c.JSON(http.StatusOK, preprocessedData)
+			// Return the JSON response after all processing is complete
+			c.JSON(http.StatusOK, responseData)
 		} else {
 			c.Status(http.StatusNoContent)
 		}
 	} else {
 		c.Status(http.StatusNoContent)
 	}
-}
-
-// Fetch the list of changed files in the pull request
-func fetchPullRequestFiles(owner, repo string, prNumber int) ([]map[string]interface{}, error) {
-	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/pulls/%d/files", owner, repo, prNumber)
-
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("Accept", "application/vnd.github.v3+json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("GitHub API responded with status: %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var files []map[string]interface{}
-	if err := json.Unmarshal(body, &files); err != nil {
-		return nil, err
-	}
-
-	return files, nil
-}
-
-// Function to filter dependencies for a specific file
-func filterDependenciesForFile(filePath string, dependencies map[string][]string) []string {
-	// Check if specific dependencies are mentioned for the file
-	if deps, exists := dependencies[filePath]; exists && len(deps) > 0 {
-		return deps
-	}
-
-	// Default to no dependencies if not specified
-	log.Printf("No specific dependencies found for file: %s. Using the file itself.", filePath)
-	return []string{}
-}
-
-// formatDependencies converts dependencies into a detailed slice with name and content.
-func formatDependencies(dependencies []string, owner, repo, commitSHA string) []map[string]string {
-	var formattedDependencies []map[string]string
-
-	for _, dependency := range dependencies {
-		depContent, err := FetchFileContentFromGitHub(owner, repo, commitSHA, dependency)
-		if err != nil {
-			log.Printf("Unable to fetch content for dependency %s: %v", dependency, err)
-			depContent = "Error fetching content"
-		}
-
-		formattedDependencies = append(formattedDependencies, map[string]string{
-			"name":    dependency,
-			"content": depContent,
-		})
-	}
-
-	return formattedDependencies
 }
