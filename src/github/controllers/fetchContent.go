@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -12,6 +13,7 @@ func FetchFileContentFromGitHub(owner, repo, commitSHA, filePath string) (string
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("Accept", "application/vnd.github.v3.raw")
 
+	// creates a pointer to new http client instance (struct)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -28,5 +30,6 @@ func FetchFileContentFromGitHub(owner, repo, commitSHA, filePath string) (string
 		return "", err
 	}
 
+	log.Printf("Successfully fetched content for file: %s", filePath)
 	return string(body), nil
 }
