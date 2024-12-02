@@ -47,23 +47,37 @@ func WebhookHandler(c *gin.Context) {
 			mergeID := fmt.Sprintf("merge_%s_%d", commitSHA, pullRequestNumber)
 
 			// Fetch PR comment to parse dependencies and context
-			prComment, err := FetchPullRequestComment(repoOwner, repoName, pullRequestNumber)
+			// prComment, err := FetchPullRequestComment(repoOwner, repoName, pullRequestNumber)
+			// if err != nil {
+			// 	log.Printf("Unable to fetch pull request comment: %v", err)
+			// } else if prComment != "" {
+			// 	log.Printf("PR Comment: %s", prComment)
+			// } else {
+			// 	log.Println("No pull request comment found")
+			// }
+
+			// dependencies, context := ParseCommentForDependencies(prComment)
+			// log.Printf("Dependencies from PR Comment: %v", dependencies)
+			// log.Printf("Context: %s", context)
+
+			prDescription, err := FetchPullRequestDescription(repoOwner, repoName, pullRequestNumber)
 			if err != nil {
-				log.Printf("Unable to fetch pull request comment: %v", err)
-			} else if prComment != "" {
-				log.Printf("PR Comment: %s", prComment)
+				log.Printf("Unable to fetch pull request description: %v", err)
+			} else if prDescription != "" {
+				log.Printf("PR Description: %s", prDescription)
 			} else {
-				log.Println("No pull request comment found")
+				log.Println("No pull request description found")
 			}
 
-			dependencies, context := ParseCommentForDependencies(prComment)
-			log.Printf("Dependencies from PR Comment: %v", dependencies)
+			dependencies, context := ParsePRDescription(prDescription)
+			log.Printf("Dependencies from PR Description: %v", dependencies)
 			log.Printf("Context: %s", context)
 
 			mergeData := map[string]interface{}{
 				"merge_id":     mergeID,
 				"commit_sha":   commitSHA,
 				"pull_request": pullRequestNumber,
+				"context":      context,
 				"files":        []map[string]interface{}{},
 			}
 
@@ -80,14 +94,18 @@ func WebhookHandler(c *gin.Context) {
 			// Process each changed file
 			for _, file := range changedFiles {
 				filePath := file["filename"].(string)
+
+				// Fetch file content
 				fileContent, err := FetchFileContentFromGitHub(repoOwner, repoName, commitSHA, filePath)
 				if err != nil {
 					log.Printf("Unable to fetch file content for %s: %v", filePath, err)
 					continue
 				}
 
-				// Filter dependencies relevant to the current file
+				// Match dependencies for this file
 				fileDependencies := filterDependenciesForFile(filePath, dependencies)
+
+				fmt.Printf("################### File: %s, Dependencies: %v\n", filePath, fileDependencies)
 
 				mergeData["files"] = append(mergeData["files"].([]map[string]interface{}), map[string]interface{}{
 					"path":         filePath,
@@ -143,8 +161,12 @@ func fetchPullRequestFiles(owner, repo string, prNumber int) ([]map[string]inter
 
 // Function to filter dependencies for a specific file
 func filterDependenciesForFile(filePath string, dependencies map[string][]string) []string {
-	if deps, found := dependencies[filePath]; found {
+	// Check if specific dependencies are mentioned for the file
+	if deps, exists := dependencies[filePath]; exists && len(deps) > 0 {
 		return deps
 	}
+
+	// Default to no dependencies if not specified
+	log.Printf("No specific dependencies found for file: %s. Using the file itself.", filePath)
 	return []string{}
 }
