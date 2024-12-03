@@ -215,28 +215,25 @@ func processAI(ctx context.Context, payload RequestPayload, model *genai.Generat
 			fmt.Println(string(responseBytes))
 		}
 		var stringResponse string
+		var cleaned string
 		if len(response.Candidates) > 0 && len(response.Candidates[0].Content.Parts) > 0 {
 			finalResponse := response.Candidates[0].Content.Parts[0]
 			fmt.Println(reflect.TypeOf(finalResponse))
 			jsonData, _ := json.Marshal(finalResponse)
 			stringResponse = string(jsonData)
-			fmt.Println(stringResponse)
-			fmt.Println(reflect.TypeOf(stringResponse))
-			if len(stringResponse) > 12 {
-				cleaned := stringResponse[10 : len(stringResponse)-6]
-
-				fmt.Println("Cleaned String")
-				var result map[string]interface{}
-				err := json.Unmarshal([]byte(cleaned), &result)
-				if err != nil {
-					fmt.Println("Error parsing JSON")
-				} else {
-					fmt.Println("Parsed JSON")
-				}
-			} else {
-				fmt.Println("Input string is too short to slice!")
-			}
 		}
-		return stringResponse
+		if len(stringResponse) > 12 {
+			cleaned = stringResponse[10 : len(stringResponse)-6]
+			var result map[string]interface{}
+			err := json.Unmarshal([]byte(cleaned), &result)
+			if err != nil {
+				fmt.Println("Error parsing JSON")
+			} else {
+				fmt.Println("Parsed JSON")
+			}
+		} else {
+			fmt.Println("Input string is too short to slice!")
+		}
+		return cleaned
 	}
 }
