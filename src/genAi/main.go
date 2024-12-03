@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"log"
-	"os"
 
 	"genAi/controllers"
+	"genAi/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/generative-ai-go/genai"
@@ -13,8 +13,15 @@ import (
 )
 
 func main() {
+	envs, err := utils.Loadenv(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
+	apiKey := envs["GEMINI_API_KEY"]
+
 	ctx := context.Background()
-	client, err := genai.NewClient(ctx, option.WithAPIKey(os.Getenv("GEMINI_API_KEY")))
+	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
 	if err != nil {
 		log.Fatal(err)
 	}
