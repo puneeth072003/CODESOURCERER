@@ -39,7 +39,3 @@ func main() {
 	log.Println("Server running on port 3001")
 	router.Run(":3001")
 }
-
-func ExampleGenerativeModel_GenerateContent_config() {
-
-}
