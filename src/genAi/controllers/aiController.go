@@ -2,45 +2,54 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
+	"reflect"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/generative-ai-go/genai"
 )
 
-// RequestPayload represents the structure of the input payload
-type RequestPayload struct {
-	Input string `json:"input"`
+type Dependency struct {
+	Name    string `json:"name"`
+	Content string `json:"content"`
 }
 
-// ResponsePayload represents the structure of the response
+type File struct {
+	Path         string       `json:"path"`
+	Content      string       `json:"content"`
+	Dependencies []Dependency `json:"dependencies"`
+}
+type RequestPayload struct {
+	MergeID       string `json:"merge_id"`
+	Context       string `json:"context"`
+	Framework     string `json:"framework"`
+	TestDirectory string `json:"test_directory"`
+	Comments      string `json:"comments"`
+	Files         []File `json:"files"`
+}
+
 type ResponsePayload struct {
 	Output string `json:"output"`
 }
 
-// ProcessAIRequest handles the incoming POST request to process the input
 func ProcessAIRequest(ctx context.Context, c *gin.Context, client *genai.Client, model *genai.GenerativeModel) {
-	// Declare the payload
 	var payload RequestPayload
-
-	// Bind JSON to the payload structure
 	if err := c.ShouldBindJSON(&payload); err != nil {
-		// Return error if the input is invalid
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format", "details": err.Error()})
 		return
 	}
-
-	// Process the input using the persistent model connection
-	aiOutput := processAI(ctx, payload.Input, model)
-
-	// Return the AI output in the response
-	response := ResponsePayload{Output: aiOutput}
+	aiOutput := processAI(ctx, payload, model)
+	// response := ResponsePayload{Output: aiOutput}
+	response := aiOutput
 	c.JSON(http.StatusOK, response)
 }
 
-// processAI simulates AI processing logic (replace this with actual AI integration)
-func processAI(ctx context.Context, input string, model *genai.GenerativeModel) string {
+func processAI(ctx context.Context, payload RequestPayload, model *genai.GenerativeModel) string {
 	session := model.StartChat()
 	session.History = []*genai.Content{
 		{
@@ -177,17 +186,57 @@ func processAI(ctx context.Context, input string, model *genai.GenerativeModel) 
 		},
 	}
 
-	// Call the model's generate response method (replace with actual logic)
-	response, err := session.SendMessage(ctx, genai.Text(input))
+	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		// Handle any errors from the AI model
+		fmt.Printf("Error serializing payload: %v\n", err)
+		return "Error processing AI request"
+	}
+
+	payloadString := string(payloadBytes)
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(15*time.Second))
+	defer cancel()
+	response, err := session.SendMessage(ctx, genai.Text(payloadString))
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			return "Error: Model response timed out."
+		}
+		log.Printf("Error generating response: %v", err)
 		return fmt.Sprintf("Error generating response: %v", err)
 	}
 
-	for _, part := range response.Candidates[0].Content.Parts {
-		fmt.Printf("%v\n", part)
-	}
+	if len(response.Candidates) == 0 {
+		fmt.Println("Model did not generate any response.")
+		return "failure"
+	} else {
+		responseBytes, err := json.MarshalIndent(response, "", "  ")
+		if err != nil {
+			fmt.Println("Error marshalling response:", err)
+		} else {
+			fmt.Println(string(responseBytes))
+		}
+		var stringResponse string
+		if len(response.Candidates) > 0 && len(response.Candidates[0].Content.Parts) > 0 {
+			finalResponse := response.Candidates[0].Content.Parts[0]
+			fmt.Println(reflect.TypeOf(finalResponse))
+			jsonData, _ := json.Marshal(finalResponse)
+			stringResponse = string(jsonData)
+			fmt.Println(stringResponse)
+			fmt.Println(reflect.TypeOf(stringResponse))
+			if len(stringResponse) > 12 {
+				cleaned := stringResponse[10 : len(stringResponse)-6]
 
-	// Return the generated response
-	return "successssss....."
+				fmt.Println("Cleaned String")
+				var result map[string]interface{}
+				err := json.Unmarshal([]byte(cleaned), &result)
+				if err != nil {
+					fmt.Println("Error parsing JSON")
+				} else {
+					fmt.Println("Parsed JSON")
+				}
+			} else {
+				fmt.Println("Input string is too short to slice!")
+			}
+		}
+		return stringResponse
+	}
 }
