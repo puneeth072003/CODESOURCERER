@@ -39,10 +39,10 @@ func WebhookHandler(c *gin.Context) {
 		if action == "closed" && merged && baseBranch == "testing" {
 			log.Printf("Pull request merged into 'testing' branch")
 
-			repoOwner := prEvent["repository"].(map[string]interface{})["owner"].(map[string]interface{})["login"].(string)
-			repoName := prEvent["repository"].(map[string]interface{})["name"].(string)
+			repoOwner := prEvent["repository"].(map[string]interface{})["owner"].(map[string]interface{})["login"].(string) //require it later
+			repoName := prEvent["repository"].(map[string]interface{})["name"].(string)                                     //require it later
 			pullRequestNumber := int(prEvent["number"].(float64))
-			commitSHA := prEvent["pull_request"].(map[string]interface{})["merge_commit_sha"].(string)
+			commitSHA := prEvent["pull_request"].(map[string]interface{})["merge_commit_sha"].(string) //require it later
 
 			mergeID := fmt.Sprintf("merge_%s_%d", commitSHA, pullRequestNumber)
 
@@ -60,13 +60,14 @@ func WebhookHandler(c *gin.Context) {
 			log.Printf("Dependencies from PR Description: %v", dependencies)
 			log.Printf("Context: %s", context)
 
-			// Prepare the JSON response
+			// Initialize the responseData structure
 			responseData := struct {
-				MergeID     string `json:"merge_id"`
-				CommitSHA   string `json:"commit_sha"`
-				PullRequest int    `json:"pull_request"`
-				Context     string `json:"context"`
-				Files       []struct {
+				MergeID       string `json:"merge_id"`
+				Context       string `json:"context"`
+				Framework     string `json:"framework"`
+				TestDirectory string `json:"test_directory"`
+				Comments      string `json:"comments"`
+				Files         []struct {
 					Path         string `json:"path"`
 					Content      string `json:"content"`
 					Dependencies []struct {
@@ -75,10 +76,11 @@ func WebhookHandler(c *gin.Context) {
 					} `json:"dependencies"`
 				} `json:"files"`
 			}{
-				MergeID:     mergeID,
-				CommitSHA:   commitSHA,
-				PullRequest: pullRequestNumber,
-				Context:     context,
+				MergeID:       mergeID,
+				Context:       context,
+				Framework:     "pytest", // Hardcoded framework
+				TestDirectory: "tests/", // Hardcoded test directory
+				Comments:      "off",    // Hardcoded comments setting
 			}
 
 			// Fetch files changed in the PR
@@ -147,8 +149,24 @@ func WebhookHandler(c *gin.Context) {
 
 			fmt.Println(string(jsonData))
 
-			// Return the JSON response after all processing is complete
-			c.JSON(http.StatusOK, responseData)
+			log.Printf("Generated payload: %+v", responseData)
+
+			server2URL := "http://localhost:3001/process"
+			server2Response, err := SendPayload(server2URL, responseData)
+			if err != nil {
+				log.Printf("Error sending payload to Server 2: %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"message": "Error forwarding payload to Server 2",
+					"error":   err.Error(),
+				})
+				return
+			}
+
+			log.Printf("Response from Server 2: %s", server2Response)
+			c.JSON(http.StatusOK, gin.H{
+				"message": "Payload processed and forwarded successfully",
+				"server2": server2Response,
+			})
 		} else {
 			c.Status(http.StatusNoContent)
 		}

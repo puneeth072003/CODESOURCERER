@@ -44,8 +44,8 @@ func ProcessAIRequest(ctx context.Context, c *gin.Context, client *genai.Client,
 		return
 	}
 	aiOutput := processAI(ctx, payload, model)
-	// response := ResponsePayload{Output: aiOutput}
-	response := aiOutput
+	response := ResponsePayload{Output: aiOutput}
+	// response := aiOutput
 	c.JSON(http.StatusOK, response)
 }
 
@@ -208,11 +208,11 @@ func processAI(ctx context.Context, payload RequestPayload, model *genai.Generat
 		fmt.Println("Model did not generate any response.")
 		return "failure"
 	} else {
-		responseBytes, err := json.MarshalIndent(response, "", "  ")
+		_, err := json.MarshalIndent(response, "", "  ")
 		if err != nil {
 			fmt.Println("Error marshalling response:", err)
 		} else {
-			fmt.Println(string(responseBytes))
+			fmt.Println("Response processed")
 		}
 		var stringResponse string
 		var cleaned string
