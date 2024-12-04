@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"github/controllers"
 	"github/utils"
+	"io"
+	"net/http"
 
 	"fmt"
 	"log"
@@ -25,13 +28,46 @@ func generateJWT(appID string, privkeyPath string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 		"iss": appID,
 		"iat": time.Now().Unix(),
-		"exp": time.Now().Add(time.Hour * 24).Unix(),
+		"exp": time.Now().Add(10 * time.Minute).Unix(),
 	})
 	tokenString, err := token.SignedString(privkey)
 	if err != nil {
 		return "", err
 	}
 	return tokenString, nil
+}
+
+func getInstallationAccessToken(installationID string, jwt string) (string, error) {
+	client := &http.Client{}
+	url := fmt.Sprintf("https://api.github.com/app/installations/%s/access_tokens", installationID)
+
+	req, err := http.NewRequest("POST", url, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %v", err)
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+	req.Header.Set("Accept", "application/vnd.github+json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("failed to generate installation access token, status: %d, response: %s", resp.StatusCode, string(body))
+	}
+
+	var response struct {
+		Token string `json:"token"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return "", fmt.Errorf("failed to parse response: %v", err)
+	}
+
+	return response.Token, nil
 }
 
 func main() {
@@ -52,9 +88,16 @@ func main() {
 	}
 	log.Printf("Generated a JWT: %s", token)
 
+	installationAccessToken, err := getInstallationAccessToken("56113322", token)
+	if err != nil {
+		log.Fatalf("Error getting installation access token: %v", err)
+	}
+	log.Printf("\nGenerated an instalLation access token: %s", installationAccessToken)
+
 	// Start the server
 	router := gin.Default()
 	router.GET("/code", controllers.Code)               // test route
 	router.POST("/webhook", controllers.WebhookHandler) // checking for push events
+	router.GET("/parse", controllers.TestParseServer2Response)
 	router.Run(":3000")
 }

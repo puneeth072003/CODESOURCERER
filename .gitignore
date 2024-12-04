@@ -4,3 +4,7 @@
 *.dll
 .env
 keys/
+tmp/
+data/
+*.hcl
+*.json
