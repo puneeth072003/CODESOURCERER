@@ -1,13 +1,12 @@
 package controllers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
-	"reflect"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -43,13 +42,18 @@ func ProcessAIRequest(ctx context.Context, c *gin.Context, client *genai.Client,
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format", "details": err.Error()})
 		return
 	}
-	aiOutput := processAI(ctx, payload, model)
-	response := ResponsePayload{Output: aiOutput}
-	// response := aiOutput
-	c.JSON(http.StatusOK, response)
+
+	aiOutput, err := processAI(ctx, payload, model)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process AI request", "details": err.Error()})
+		return
+	}
+
+	// Send the raw JSON output
+	c.Data(http.StatusOK, "application/json", aiOutput)
 }
 
-func processAI(ctx context.Context, payload RequestPayload, model *genai.GenerativeModel) string {
+func processAI(ctx context.Context, payload RequestPayload, model *genai.GenerativeModel) ([]byte, error) {
 	session := model.StartChat()
 	session.History = []*genai.Content{
 		{
@@ -184,56 +188,111 @@ func processAI(ctx context.Context, payload RequestPayload, model *genai.Generat
 				genai.Text("```json\n{\n  \"tests\": [\n    {\n      \"testname\": \"test_list_utils\",\n      \"testfilepath\": \"tests/test_list_utils.py\",\n      \"parentpath\": \"list_utils.py\",\n      \"code\": \"import pytest\\nfrom list_utils import get_max, get_min\\n\\ndef test_get_max():\\n    assert get_max([1, 5, 2, 8, 3]) == 8\\n    assert get_max([-1, -5, -2, -8, -3]) == -1\\n    with pytest.raises(ValueError):\\n        get_max([])\\n    #Coughed up by CODESOURCERER\\n\\ndef test_get_min():\\n    assert get_min([1, 5, 2, 8, 3]) == 1\\n    assert get_min([-1, -5, -2, -8, -3]) == -8\\n    with pytest.raises(ValueError):\\n        get_min([])\\n    #Coughed up by CODESOURCERER\"\n    },\n    {\n      \"testname\": \"test_calculate_stats\",\n      \"testfilepath\": \"tests/test_calculate_stats.py\",\n      \"parentpath\": \"statistics/calculate_stats.py\",\n      \"code\": \"import pytest\\nfrom statistics.calculate_stats import calculate_range, calculate_average\\n\\ndef test_calculate_range():\\n    assert calculate_range([1, 5, 2, 8, 3]) == 7\\n    assert calculate_range([-1, -5, -2, -8, -3]) == 7\\n    with pytest.raises(ValueError):\\n        calculate_range([])\\n    #Coughed up by CODESOURCERER\\n\\ndef test_calculate_average():\\n    assert calculate_average([1, 5, 2, 8, 3]) == 3.8\\n    assert calculate_average([-1, -5, -2, -8, -3]) == -3.8\\n    with pytest.raises(ValueError):\\n        calculate_average([])\\n    #Coughed up by CODESOURCERER\"\n    }\n  ]\n}\n```\n"),
 			},
 		},
+		{
+			Role: "user",
+			Parts: []genai.Part{
+				genai.Text("{\n  \"merge_id\": \"merge_uvw456rst789xyz123abc890klm567def234_107\",\n  \"context\": \"This PR adds utility functions for date formatting and integrates these into a scheduling module.\",\n  \"framework\": \"pytest\",\n  \"test_directory\": \"tests/\",\n  \"comments\": \"off\",\n  \"files\": [\n    {\n      \"path\": \"date_utils.py\",\n      \"content\": \"from datetime import datetime\\n\\ndef format_date(date):\\n    return date.strftime('%Y-%m-%d')\\n\\ndef parse_date(date_string):\\n    return datetime.strptime(date_string, '%Y-%m-%d')\",\n      \"dependencies\": []\n    },\n    {\n      \"path\": \"scheduling/schedule_manager.py\",\n      \"content\": \"from date_utils import format_date, parse_date\\n\\ndef get_formatted_date_for_today():\\n    return format_date(datetime.now())\",\n      \"dependencies\": [\n        {\n          \"name\": \"date_utils.py\",\n          \"content\": \"from datetime import datetime\\n\\ndef format_date(date):\\n    return date.strftime('%Y-%m-%d')\\n\\ndef parse_date(date_string):\\n    return datetime.strptime(date_string, '%Y-%m-%d')\"\n        }\n      ]\n    }\n  ]\n}"),
+			},
+		},
+		{
+			Role: "model",
+			Parts: []genai.Part{
+				genai.Text("```json\n{\n  \"tests\": [\n    {\n      \"testname\": \"test_date_utils\",\n      \"testfilepath\": \"tests/test_date_utils.py\",\n      \"parentpath\": \"date_utils.py\",\n      \"code\": \"import pytest\\nfrom datetime import datetime\\nfrom date_utils import format_date, parse_date\\n\\ndef test_format_date():\\n    date = datetime(2024, 3, 15)\\n    assert format_date(date) == '2024-03-15'\\n    #Coughed up by CODESOURCERER\\n\\ndef test_parse_date():\\n    date_string = '2024-03-15'\\n    parsed_date = parse_date(date_string)\\n    assert parsed_date == datetime(2024, 3, 15)\\n    #Coughed up by CODESOURCERER\\n\\ndef test_parse_date_invalid():\\n    with pytest.raises(ValueError):\\n        parse_date('invalid date')\\n    #Coughed up by CODESOURCERER\"\n    },\n    {\n      \"testname\": \"test_schedule_manager\",\n      \"testfilepath\": \"tests/test_schedule_manager.py\",\n      \"parentpath\": \"scheduling/schedule_manager.py\",\n      \"code\": \"import pytest\\nfrom datetime import datetime\\nfrom scheduling.schedule_manager import get_formatted_date_for_today\\n\\ndef test_get_formatted_date_for_today():\\n    #This test is inherently time-dependent, so a more robust approach might be to check format instead of exact date.\\n    today = datetime.now()\\n    formatted_date = get_formatted_date_for_today()\\n    assert formatted_date == today.strftime('%Y-%m-%d')\\n    #Coughed up by CODESOURCERER\"\n    }\n  ]\n}\n```"),
+			},
+		},
+		{
+			Role: "user",
+			Parts: []genai.Part{
+				genai.Text("please don't use code bocks just return the json coverted to string, that i don't use ```json and ``` at the begining and the last"),
+			},
+		},
+		{
+			Role: "model",
+			Parts: []genai.Part{
+				genai.Text("{\"tests\": [{\"testname\": \"test_date_utils\", \"testfilepath\": \"tests/test_date_utils.py\", \"parentpath\": \"date_utils.py\", \"code\": \"import pytest\\nfrom datetime import datetime\\nfrom date_utils import format_date, parse_date\\n\\ndef test_format_date():\\n    date = datetime(2024, 3, 15)\\n    assert format_date(date) == '2024-03-15'\\n    #Coughed up by CODESOURCERER\\n\\ndef test_parse_date():\\n    date_string = '2024-03-15'\\n    parsed_date = parse_date(date_string)\\n    assert parsed_date == datetime(2024, 3, 15)\\n    #Coughed up by CODESOURCERER\\n\\ndef test_parse_date_invalid():\\n    with pytest.raises(ValueError):\\n        parse_date('invalid date')\\n    #Coughed up by CODESOURCERER\"}, {\"testname\": \"test_schedule_manager\", \"testfilepath\": \"tests/test_schedule_manager.py\", \"parentpath\": \"scheduling/schedule_manager.py\", \"code\": \"import pytest\\nfrom datetime import datetime\\nfrom scheduling.schedule_manager import get_formatted_date_for_today\\n\\ndef test_get_formatted_date_for_today():\\n    #This test is inherently time-dependent, so a more robust approach might be to check format instead of exact date.\\n    today = datetime.now()\\n    formatted_date = get_formatted_date_for_today()\\n    assert formatted_date == today.strftime('%Y-%m-%d')\\n    #Coughed up by CODESOURCERER\"}]}\n"),
+			},
+		},
 	}
+	// 	payloadBytes, err := json.Marshal(payload)
+	// 	if err != nil {
+	// 		fmt.Printf("Error serializing payload: %v\n", err)
+	// 		return "Error processing AI request"
+	// 	}
 
+	// 	payloadString := string(payloadBytes)
+	// 	ctx, cancel := context.WithTimeout(ctx, time.Duration(15*time.Second))
+	// 	defer cancel()
+	// 	response, err := session.SendMessage(ctx, genai.Text(payloadString))
+	// 	if err != nil {
+	// 		if errors.Is(err, context.DeadlineExceeded) {
+	// 			return "Error: Model response timed out."
+	// 		}
+	// 		log.Printf("Error generating response: %v", err)
+	// 		return fmt.Sprintf("Error generating response: %v", err)
+	// 	}
+
+	// 	if len(response.Candidates) == 0 {
+	// 		fmt.Println("Model did not generate any response.")
+	// 		return "failure"
+	// 	} else {
+	// 		_, err := json.MarshalIndent(response, "", "  ")
+	// 		if err != nil {
+	// 			fmt.Println("Error marshalling response:", err)
+	// 		} else {
+	// 			fmt.Println("Response processed")
+	// 		}
+	// 		var stringResponse string
+	// 		var cleaned string
+	// 		if len(response.Candidates) > 0 && len(response.Candidates[0].Content.Parts) > 0 {
+	// 			finalResponse := response.Candidates[0].Content.Parts[0]
+	// 			fmt.Println(reflect.TypeOf(finalResponse))
+	// 			jsonData, _ := json.Marshal(finalResponse)
+	// 			stringResponse = string(jsonData)
+	// 		}
+	// 		if len(stringResponse) > 12 {
+	// 			cleaned = stringResponse[10 : len(stringResponse)-6]
+	// 			var result map[string]interface{}
+	// 			err := json.Unmarshal([]byte(cleaned), &result)
+	// 			if err != nil {
+	// 				fmt.Println("Error parsing JSON")
+	// 			} else {
+	// 				fmt.Println("Parsed JSON")
+	// 			}
+	// 		} else {
+	// 			fmt.Println("Input string is too short to slice!")
+	// 		}
+	// 		return cleaned
+	// 	}
+	// }
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		fmt.Printf("Error serializing payload: %v\n", err)
-		return "Error processing AI request"
+		return nil, fmt.Errorf("error serializing payload: %v", err)
 	}
 
-	payloadString := string(payloadBytes)
-	ctx, cancel := context.WithTimeout(ctx, time.Duration(15*time.Second))
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
-	response, err := session.SendMessage(ctx, genai.Text(payloadString))
+
+	response, err := session.SendMessage(ctx, genai.Text(string(payloadBytes)))
 	if err != nil {
-		if errors.Is(err, context.DeadlineExceeded) {
-			return "Error: Model response timed out."
-		}
-		log.Printf("Error generating response: %v", err)
-		return fmt.Sprintf("Error generating response: %v", err)
+		return nil, fmt.Errorf("error generating response: %v", err)
 	}
 
-	if len(response.Candidates) == 0 {
-		fmt.Println("Model did not generate any response.")
-		return "failure"
-	} else {
-		_, err := json.MarshalIndent(response, "", "  ")
-		if err != nil {
-			fmt.Println("Error marshalling response:", err)
-		} else {
-			fmt.Println("Response processed")
-		}
-		var stringResponse string
-		var cleaned string
-		if len(response.Candidates) > 0 && len(response.Candidates[0].Content.Parts) > 0 {
-			finalResponse := response.Candidates[0].Content.Parts[0]
-			fmt.Println(reflect.TypeOf(finalResponse))
-			jsonData, _ := json.Marshal(finalResponse)
-			stringResponse = string(jsonData)
-		}
-		if len(stringResponse) > 12 {
-			cleaned = stringResponse[10 : len(stringResponse)-6]
-			var result map[string]interface{}
-			err := json.Unmarshal([]byte(cleaned), &result)
-			if err != nil {
-				fmt.Println("Error parsing JSON")
-			} else {
-				fmt.Println("Parsed JSON")
-			}
-		} else {
-			fmt.Println("Input string is too short to slice!")
-		}
-		return cleaned
+	if len(response.Candidates) == 0 || len(response.Candidates[0].Content.Parts) == 0 {
+		return nil, errors.New("model did not generate any response")
 	}
+
+	// Marshal the content of the response to JSON format
+	jsonData, err := json.Marshal(response.Candidates[0].Content.Parts[0])
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling response to JSON: %v", err)
+	}
+
+	var prettyJSON bytes.Buffer
+	err = json.Indent(&prettyJSON, jsonData, "", "  ") // Indentation with 2 spaces
+	if err != nil {
+		fmt.Println("Error formatting JSON:", err)
+	}
+
+	fmt.Println(prettyJSON.String())
+	return jsonData, nil
 }
