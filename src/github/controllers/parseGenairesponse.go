@@ -1,11 +1,7 @@
 package controllers
 
 import (
-	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,39 +13,34 @@ type Test struct {
 	Code         string `json:"code"`
 }
 
-func ParseServer2Response(rawResponse string) (map[string]interface{}, error) {
+func ParseServer2Response(rawResponse string) ([]Test, error) {
 	// Step 1: Parse the raw response to extract the output field
-	type Server2Response struct {
-		Output string `json:"output"`
-	}
-	var server2Response Server2Response
-	err := json.Unmarshal([]byte(rawResponse), &server2Response)
-	if err != nil {
-		log.Printf("Error unmarshaling Server 2 response: %v", err)
-		return nil, fmt.Errorf("invalid JSON structure: %v", err)
-	}
+	// type Server2Response struct {
+	// 	Output string `json:"output"`
+	// }
+	// var server2Response Server2Response
+	// err := json.Unmarshal([]byte(rawResponse), &server2Response)
+	// if err != nil {
+	// 	log.Printf("Error unmarshaling Server 2 response: %v", err)
+	// 	return nil, fmt.Errorf("invalid JSON structure: %v", err)
+	// }
 
-	// Step 2: Check if the output field exists
-	if server2Response.Output == "" {
-		return nil, fmt.Errorf("missing 'output' field in response")
-	}
+	// // Step 2: Check if the output field exists
+	// if server2Response.Output == "" {
+	// 	return nil, fmt.Errorf("missing 'output' field in response")
+	// }
 
-	// Step 3: Unescape the JSON string inside the `output` field
-	unescapedOutput := strings.ReplaceAll(server2Response.Output, `\\`, `\`)
+	// // Step 3: Unescape the JSON string inside the `output` field
+	// unescapedOutput := strings.ReplaceAll(server2Response.Output, `\\`, `\`)
 
-	// Step 4: Parse the unescaped string into a valid JSON object
-	var parsedOutput map[string]interface{}
-	err = json.Unmarshal([]byte(unescapedOutput), &parsedOutput)
-	if err != nil {
-		log.Printf("Error parsing output JSON: %v", err)
-		return nil, fmt.Errorf("invalid 'output' JSON: %v", err)
-	}
+	// // Step 4: Parse the unescaped string into a valid JSON object
+	// var parsedOutput map[string]interface{}
+	// err = json.Unmarshal([]byte(unescapedOutput), &parsedOutput)
+	// if err != nil {
+	// 	log.Printf("Error parsing output JSON: %v", err)
+	// 	return nil, fmt.Errorf("invalid 'output' JSON: %v", err)
+	// }
 
-	return parsedOutput, nil
-}
-
-func TestParseServer2Response(c *gin.Context) {
-	// Define a slice of tests
 	response := []Test{
 		{
 			TestName:     "test_file_operations",
@@ -120,7 +111,12 @@ def test_main(mock_read_file, mock_write_file, mock_process_content):
     # Coughed up by CODESOURCERER`,
 		},
 	}
+	return response, nil
+}
 
+func TestParseServer2Response(c *gin.Context) {
+	// Define a slice of tests
+	respose, _ := ParseServer2Response("hi")
 	// Return the response as JSON
-	c.JSON(http.StatusOK, gin.H{"tests": response})
+	c.JSON(http.StatusOK, gin.H{"response": respose})
 }
