@@ -1,4 +1,4 @@
-package controllers
+package finalizers
 
 import (
 	"net/http"

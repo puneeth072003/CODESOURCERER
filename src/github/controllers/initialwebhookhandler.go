@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github/controllers/generators"
+	"github/controllers/initializers"
+
 	"io"
 	"log"
 	"net/http"
@@ -48,7 +50,7 @@ func WebhookHandler(c *gin.Context) {
 			mergeID := fmt.Sprintf("merge_%s_%d", commitSHA, pullRequestNumber)
 
 			// Fetch PR description and dependencies
-			prDescription, err := FetchPullRequestDescription(repoOwner, repoName, pullRequestNumber)
+			prDescription, err := initializers.FetchPullRequestDescription(repoOwner, repoName, pullRequestNumber)
 			if err != nil {
 				log.Printf("Unable to fetch pull request description: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{
@@ -57,7 +59,7 @@ func WebhookHandler(c *gin.Context) {
 				return
 			}
 
-			dependencies, context := ParsePRDescription(prDescription)
+			dependencies, context := initializers.ParsePRDescription(prDescription)
 			log.Printf("Dependencies from PR Description: %v", dependencies)
 			log.Printf("Context: %s", context)
 
@@ -85,7 +87,7 @@ func WebhookHandler(c *gin.Context) {
 			}
 
 			// Fetch files changed in the PR
-			changedFiles, err := FetchPullRequestFiles(repoOwner, repoName, pullRequestNumber)
+			changedFiles, err := initializers.FetchPullRequestFiles(repoOwner, repoName, pullRequestNumber)
 			if err != nil {
 				log.Printf("Unable to fetch changed files: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{
@@ -97,7 +99,7 @@ func WebhookHandler(c *gin.Context) {
 			// Synchronous processing of files and dependencies
 			for _, file := range changedFiles {
 				filePath := file["filename"].(string)
-				fileContent, err := FetchFileContentFromGitHub(repoOwner, repoName, commitSHA, filePath)
+				fileContent, err := initializers.FetchFileContentFromGitHub(repoOwner, repoName, commitSHA, filePath)
 				if err != nil {
 					log.Printf("Unable to fetch file content for %s: %v", filePath, err)
 					fileContent = "Error fetching content"
@@ -112,7 +114,7 @@ func WebhookHandler(c *gin.Context) {
 				}
 
 				for _, dep := range fileDependencies {
-					depContent, err := FetchFileContentFromGitHub(repoOwner, repoName, commitSHA, dep)
+					depContent, err := initializers.FetchFileContentFromGitHub(repoOwner, repoName, commitSHA, dep)
 					if err != nil {
 						log.Printf("Unable to fetch content for dependency %s: %v", dep, err)
 						depContent = "Error fetching content"
