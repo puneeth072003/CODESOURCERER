@@ -98,6 +98,6 @@ func main() {
 	router := gin.Default()
 	router.GET("/code", controllers.Code)               // test route
 	router.POST("/webhook", controllers.WebhookHandler) // checking for push events
-	router.GET("/parse", controllers.TestParseServer2Response)
+	// router.GET("/parse", controllers.TestParseServer2Response)
 	router.Run(":3000")
 }
