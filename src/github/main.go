@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github/controllers"
+	"github/controllers/finalizers"
 	"github/utils"
 	"io"
 	"net/http"
@@ -98,6 +99,7 @@ func main() {
 	router := gin.Default()
 	router.GET("/code", controllers.Code)               // test route
 	router.POST("/webhook", controllers.WebhookHandler) // checking for push events
-	router.GET("/parse", controllers.TestParseServer2Response)
+	router.GET("/parse", finalizers.TestParseServer2Response)
+	router.GET("/testsend", controllers.TestSendPayload)
 	router.Run(":3000")
 }
