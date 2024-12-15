@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"reflect"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -32,15 +31,15 @@ type RequestPayload struct {
 	Files         []File `json:"files"`
 }
 
-type GenAI struct {
-	Tests []Test `json:"tests"`
-}
-
 type Test struct {
 	TestName     string `json:"testname"`
 	TestFilePath string `json:"testfilepath"`
 	ParentPath   string `json:"parentpath"`
 	Code         string `json:"code"`
+}
+
+type GenAIResponse struct {
+	Tests []Test `json:"tests"`
 }
 
 func ProcessAIRequest(ctx context.Context, c *gin.Context, client *genai.Client, model *genai.GenerativeModel) {
@@ -56,12 +55,10 @@ func ProcessAIRequest(ctx context.Context, c *gin.Context, client *genai.Client,
 		return
 	}
 
-	// var response ResponsePayload
-	// err = json.Unmarshal([]byte(aiOutput), &response)
-	c.JSON(http.StatusOK, aiOutput)
+	c.JSON(http.StatusOK, &aiOutput)
 }
 
-func processAI(ctx context.Context, payload RequestPayload, model *genai.GenerativeModel) (genai.Part, error) {
+func processAI(ctx context.Context, payload RequestPayload, model *genai.GenerativeModel) (*GenAIResponse, error) {
 	session := model.StartChat()
 	session.History = []*genai.Content{
 		{
@@ -119,11 +116,19 @@ func processAI(ctx context.Context, payload RequestPayload, model *genai.Generat
 		return nil, errors.New("model did not generate any response")
 	}
 
-	genJson := response.Candidates[0].Content.Parts[0]
-	fmt.Println("############################################")
-	fmt.Println(response.Candidates[0].Content.Parts[0])
-	fmt.Println("############################################")
+	part := response.Candidates[0].Content.Parts[0]
 
-	fmt.Println(reflect.TypeOf(genJson))
-	return genJson, nil
+	textPart, ok := part.(genai.Text)
+	if !ok {
+		return nil, fmt.Errorf("unable to convert to text type: %v", err)
+	}
+
+	var result GenAIResponse
+
+	if err := json.Unmarshal([]byte(textPart), &result); err != nil {
+		return nil, fmt.Errorf("Unable to unmarshal: %v", err)
+	}
+
+	return &result, nil
+
 }
