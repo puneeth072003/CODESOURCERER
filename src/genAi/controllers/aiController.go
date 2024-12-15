@@ -1,12 +1,12 @@
 package controllers
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -32,8 +32,15 @@ type RequestPayload struct {
 	Files         []File `json:"files"`
 }
 
-type ResponsePayload struct {
-	Output string `json:"output"`
+type GenAI struct {
+	Tests []Test `json:"tests"`
+}
+
+type Test struct {
+	TestName     string `json:"testname"`
+	TestFilePath string `json:"testfilepath"`
+	ParentPath   string `json:"parentpath"`
+	Code         string `json:"code"`
 }
 
 func ProcessAIRequest(ctx context.Context, c *gin.Context, client *genai.Client, model *genai.GenerativeModel) {
@@ -49,11 +56,12 @@ func ProcessAIRequest(ctx context.Context, c *gin.Context, client *genai.Client,
 		return
 	}
 
-	// Send the raw JSON output
-	c.Data(http.StatusOK, "application/json", aiOutput)
+	// var response ResponsePayload
+	// err = json.Unmarshal([]byte(aiOutput), &response)
+	c.JSON(http.StatusOK, aiOutput)
 }
 
-func processAI(ctx context.Context, payload RequestPayload, model *genai.GenerativeModel) ([]byte, error) {
+func processAI(ctx context.Context, payload RequestPayload, model *genai.GenerativeModel) (genai.Part, error) {
 	session := model.StartChat()
 	session.History = []*genai.Content{
 		{
@@ -93,57 +101,7 @@ func processAI(ctx context.Context, payload RequestPayload, model *genai.Generat
 			},
 		},
 	}
-	// 	payloadBytes, err := json.Marshal(payload)
-	// 	if err != nil {
-	// 		fmt.Printf("Error serializing payload: %v\n", err)
-	// 		return "Error processing AI request"
-	// 	}
 
-	// 	payloadString := string(payloadBytes)
-	// 	ctx, cancel := context.WithTimeout(ctx, time.Duration(15*time.Second))
-	// 	defer cancel()
-	// 	response, err := session.SendMessage(ctx, genai.Text(payloadString))
-	// 	if err != nil {
-	// 		if errors.Is(err, context.DeadlineExceeded) {
-	// 			return "Error: Model response timed out."
-	// 		}
-	// 		log.Printf("Error generating response: %v", err)
-	// 		return fmt.Sprintf("Error generating response: %v", err)
-	// 	}
-
-	// 	if len(response.Candidates) == 0 {
-	// 		fmt.Println("Model did not generate any response.")
-	// 		return "failure"
-	// 	} else {
-	// 		_, err := json.MarshalIndent(response, "", "  ")
-	// 		if err != nil {
-	// 			fmt.Println("Error marshalling response:", err)
-	// 		} else {
-	// 			fmt.Println("Response processed")
-	// 		}
-	// 		var stringResponse string
-	// 		var cleaned string
-	// 		if len(response.Candidates) > 0 && len(response.Candidates[0].Content.Parts) > 0 {
-	// 			finalResponse := response.Candidates[0].Content.Parts[0]
-	// 			fmt.Println(reflect.TypeOf(finalResponse))
-	// 			jsonData, _ := json.Marshal(finalResponse)
-	// 			stringResponse = string(jsonData)
-	// 		}
-	// 		if len(stringResponse) > 12 {
-	// 			cleaned = stringResponse[10 : len(stringResponse)-6]
-	// 			var result map[string]interface{}
-	// 			err := json.Unmarshal([]byte(cleaned), &result)
-	// 			if err != nil {
-	// 				fmt.Println("Error parsing JSON")
-	// 			} else {
-	// 				fmt.Println("Parsed JSON")
-	// 			}
-	// 		} else {
-	// 			fmt.Println("Input string is too short to slice!")
-	// 		}
-	// 		return cleaned
-	// 	}
-	// }
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("error serializing payload: %v", err)
@@ -161,18 +119,11 @@ func processAI(ctx context.Context, payload RequestPayload, model *genai.Generat
 		return nil, errors.New("model did not generate any response")
 	}
 
-	// Marshal the content of the response to JSON format
-	jsonData, err := json.Marshal(response.Candidates[0].Content.Parts[0])
-	if err != nil {
-		return nil, fmt.Errorf("error marshaling response to JSON: %v", err)
-	}
+	genJson := response.Candidates[0].Content.Parts[0]
+	fmt.Println("############################################")
+	fmt.Println(response.Candidates[0].Content.Parts[0])
+	fmt.Println("############################################")
 
-	var prettyJSON bytes.Buffer
-	err = json.Indent(&prettyJSON, jsonData, "", "  ") // Indentation with 2 spaces
-	if err != nil {
-		fmt.Println("Error formatting JSON:", err)
-	}
-
-	fmt.Println(prettyJSON.String())
-	return jsonData, nil
+	fmt.Println(reflect.TypeOf(genJson))
+	return genJson, nil
 }
