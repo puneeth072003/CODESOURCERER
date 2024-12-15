@@ -293,13 +293,13 @@ func processAI(ctx context.Context, payload RequestPayload, model *genai.Generat
 
 	textPart, ok := part.(genai.Text)
 	if !ok {
-		fmt.Printf("Unable to convert it into text")
+		return nil, fmt.Errorf("unable to convert to text type: %v", err)
 	}
 
 	var tests Tests
 
 	if err := json.Unmarshal([]byte(textPart), &tests); err != nil {
-		fmt.Printf("Parsing JSON Error: ", err)
+		return nil, fmt.Errorf("Unable to unmarshal: %v", err)
 	}
 
 	return &tests, nil
