@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -36,6 +35,15 @@ type ResponsePayload struct {
 	Output string `json:"output"`
 }
 
+type Tests struct {
+	Tests []struct {
+		TestName     string `json:"testname"`
+		TestFilePath string `json:"testfilepath"`
+		ParentPath   string `json:"parentpath"`
+		Code         string `json:"code"`
+	} `json:"tests"`
+}
+
 func ProcessAIRequest(ctx context.Context, c *gin.Context, client *genai.Client, model *genai.GenerativeModel) {
 	var payload RequestPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
@@ -50,10 +58,10 @@ func ProcessAIRequest(ctx context.Context, c *gin.Context, client *genai.Client,
 	}
 
 	// Send the raw JSON output
-	c.Data(http.StatusOK, "application/json", aiOutput)
+	c.JSON(http.StatusOK, *aiOutput)
 }
 
-func processAI(ctx context.Context, payload RequestPayload, model *genai.GenerativeModel) ([]byte, error) {
+func processAI(ctx context.Context, payload RequestPayload, model *genai.GenerativeModel) (*Tests, error) {
 	session := model.StartChat()
 	session.History = []*genai.Content{
 		{
@@ -281,18 +289,19 @@ func processAI(ctx context.Context, payload RequestPayload, model *genai.Generat
 		return nil, errors.New("model did not generate any response")
 	}
 
-	// Marshal the content of the response to JSON format
-	jsonData, err := json.Marshal(response.Candidates[0].Content.Parts[0])
-	if err != nil {
-		return nil, fmt.Errorf("error marshaling response to JSON: %v", err)
+	part := response.Candidates[0].Content.Parts[0]
+
+	textPart, ok := part.(genai.Text)
+	if !ok {
+		fmt.Printf("Unable to convert it into text")
 	}
 
-	var prettyJSON bytes.Buffer
-	err = json.Indent(&prettyJSON, jsonData, "", "  ") // Indentation with 2 spaces
-	if err != nil {
-		fmt.Println("Error formatting JSON:", err)
+	var tests Tests
+
+	if err := json.Unmarshal([]byte(textPart), &tests); err != nil {
+		fmt.Printf("Parsing JSON Error: ", err)
 	}
 
-	fmt.Println(prettyJSON.String())
-	return jsonData, nil
+	return &tests, nil
+
 }
