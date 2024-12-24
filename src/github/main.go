@@ -81,15 +81,23 @@ func main() {
 	if !exists {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
+	appID, exists := envs["APP_ID"]
+	if !exists {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+	installationID, exists := envs["INSTALLATION_ID"]
+	if !exists {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
 	// Get the private key path
 	fmt.Println("PRIVATE_KEY_PATH:", privKeyPath)
-	token, err := generateJWT("1028002", string(privKeyPath))
+	token, err := generateJWT(appID, string(privKeyPath))
 	if err != nil {
 		log.Fatalf("Error generating JWT: %v", err)
 	}
 	log.Printf("Generated a JWT: %s", token)
 
-	installationAccessToken, err := getInstallationAccessToken("56113322", token)
+	installationAccessToken, err := getInstallationAccessToken(installationID, token)
 	if err != nil {
 		log.Fatalf("Error getting installation access token: %v", err)
 	}
