@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package codesourcerer.genai;
+
+option go_package = "protobuf/generated";
+
+service GenAiService {
+  rpc GenerateTestFiles(GithubContextRequest) returns (GeneratedTestsResponse) {}
+}
+
+message SourceFilesPayload {
+  string path = 1;
+  string content = 2;
+  repeated SourceFilesPayload dependencies = 3;
+}
+
+message GithubContextRequest {
+  string merge_id = 1;
+  string context = 2;
+  string framework = 3;
+  string test_directory = 4;
+  string comments = 5;
+  repeated SourceFilesPayload files = 6;
+}
+
+message TestFilesPayload {
+  string testname = 1;
+  string testfilepath = 2;
+  string parentpath = 3;
+  string code = 4;
+}
+
+message GeneratedTestsResponse {
+  repeated TestFilesPayload tests = 1;
+}
