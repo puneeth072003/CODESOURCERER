@@ -143,18 +143,16 @@ func WebhookHandler(c *gin.Context) {
 				})
 			}
 
-			// jsonData, err := json.MarshalIndent(responseData, "", "  ")
-			// if err != nil {
-			// 	fmt.Println("Error:", err)
-			// 	return
-			// }
+			jsonData, err := json.MarshalIndent(responseData, "", "  ")
+			if err != nil {
+				fmt.Println("Error:", err)
+				return
+			}
 
-			// fmt.Println(string(jsonData))
-
-			log.Printf("Generated payload: %+v", responseData)
+			log.Println("##### Constructed payload:", string(jsonData)) // basically string form of unsigned int data
 
 			server2URL := "http://localhost:3001/process"
-			server2Response, err := SendPayload(server2URL, responseData)
+			server2Response, err := SendPayload(server2URL, string(jsonData))
 			if err != nil {
 				log.Printf("Error sending payload to Server 2: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{
