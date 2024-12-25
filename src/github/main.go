@@ -29,7 +29,7 @@ func generateJWT(appID string, privkeyPath string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
 		"iss": appID,
 		"iat": time.Now().Unix(),
-		"exp": time.Now().Add(10 * time.Minute).Unix(),
+		"exp": time.Now().Add(9 * time.Minute).Unix(),
 	})
 	tokenString, err := token.SignedString(privkey)
 	if err != nil {
@@ -108,6 +108,6 @@ func main() {
 	router.GET("/code", controllers.Code)               // test route
 	router.POST("/webhook", controllers.WebhookHandler) // checking for push events
 	router.GET("/parse", finalizers.TestParseServer2Response)
-	router.GET("/testsend", controllers.TestSendPayload)
+	// router.GET("/testsend", controllers.TestSendPayload)
 	router.Run(":3000")
 }
