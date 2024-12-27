@@ -165,14 +165,15 @@ func WebhookHandler(c *gin.Context) {
 			log.Print("Waiting for the response from Server 2...")
 			// Now we wait for responseData
 			log.Printf("Response from Server 2: %v", server2Response)
-			c.JSON(http.StatusOK, gin.H{
-				"message": "Payload processed and forwarded successfully",
-				"server2": server2Response,
-			})
 
-			c.JSON(http.StatusOK, gin.H{
-				"message": "Test files generated and draft PR created successfully",
-			})
+			// c.JSON(http.StatusOK, gin.H{
+			// 	"message": "Payload processed and forwarded successfully",
+			// 	"server2": server2Response,
+			// })
+
+			// c.JSON(http.StatusOK, gin.H{
+			// 	"message": "Test files generated and draft PR created successfully",
+			// })
 
 		} else {
 			c.Status(http.StatusNoContent)
