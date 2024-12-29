@@ -7,7 +7,6 @@ import (
 	"github/controllers/tokenhandlers"
 	"github/utils"
 	"log"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,14 +23,7 @@ func initTokenManager() {
 	apiEndpoint := fmt.Sprintf("https://api.github.com/app/installations/%s/access_tokens", installationID)
 
 	jwtToken := tokenhandlers.GetJWT()
-	var tokenManager = tokenhandlers.GetInstance()
-	tokenManager = tokenhandlers.NewTokenManager(apiEndpoint, jwtToken)
-	tokenManager.StartProactiveRefresh(1 * time.Minute) // Start proactive token refresh
-}
-
-func main() {
-	// Initialize the token manager
-	initTokenManager()
+	tokenhandlers.NewTokenManager(apiEndpoint, jwtToken) // Initialize the TokenManager
 
 	// Demo fetch of token
 	token, err := tokenhandlers.GetInstance().GetToken()
@@ -40,6 +32,11 @@ func main() {
 		return
 	}
 	fmt.Println("Fetched Token:", token)
+}
+
+func main() {
+	// Initialize the token manager
+	initTokenManager()
 
 	// Start the server
 	router := gin.Default()

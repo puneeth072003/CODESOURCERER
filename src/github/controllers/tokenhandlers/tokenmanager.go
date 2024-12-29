@@ -20,6 +20,7 @@ type TokenManager struct {
 
 // Initialize the TokenManager (Singleton)
 var once sync.Once
+var instance *TokenManager
 
 func NewTokenManager(apiEndpoint, jwtToken string) *TokenManager {
 	once.Do(func() {
@@ -54,10 +55,14 @@ func (tm *TokenManager) GetToken() (string, error) {
 
 	err := tm.refreshToken()
 	if err != nil {
+		tm.mu.Lock()
+		tm.refreshing = false
+		tm.mu.Unlock()
 		return "", err
 	}
 
 	tm.mu.Lock()
+	tm.refreshing = false
 	defer tm.mu.Unlock()
 	return tm.token, nil
 }
@@ -91,7 +96,7 @@ func (tm *TokenManager) refreshToken() error {
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		return err
 	}
-	tm.token = response.Token                        // Extract from response body
+	tm.token = response.Token
 	tm.expiration = time.Now().Add(10 * time.Minute) // Example: 10 minutes validity
 
 	tm.mu.Lock()
@@ -113,8 +118,6 @@ func (tm *TokenManager) StartProactiveRefresh(interval time.Duration) {
 }
 
 // Exported function to get the singleton instance
-var instance *TokenManager
-
 func GetInstance() *TokenManager {
 	if instance == nil {
 		panic("TokenManager is not initialized. Call Initialize first.")
