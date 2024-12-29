@@ -1,75 +1,20 @@
-name: Run Gosec in services
+name: Run Gosec
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
     branches:
-      - main
+      - master
 jobs:
-  code-scan:
+  tests:
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on
     steps:
-      # Step 1: Checkout the repository source code
       - name: Checkout Source
         uses: actions/checkout@v3
-
-      # Step 2: Set up Go environment
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.20  # Specify your Go version
-
-      # Step 3: Cache dependencies for `src/github`
-      - name: Cache Go Modules for GitHub Service
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build/github
-            ~/go/pkg/mod
-          key: go-mod-github-${{ hashFiles('src/github/go.sum') }}
-          restore-keys: |
-            go-mod-
-
-      # Step 4: Install dependencies for `src/github`
-      - name: Install Dependencies for GitHub Service
-        run: |
-          cd src/github
-          echo "Initializing Go modules in src/github"
-          go mod init github || echo "Module already initialized"
-          go mod tidy
-          go mod download
-
-      # Step 5: Run Gosec for `src/github`
-      - name: Run Gosec on GitHub Service
-        uses: securego/gosec@master
-        with:
-          args: ./...
-
-      # Step 6: Cache dependencies for `src/genai`
-      - name: Cache Go Modules for GenAI Service
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/go-build/genai
-            ~/go/pkg/mod
-          key: go-mod-genai-${{ hashFiles('src/genai/go.sum') }}
-          restore-keys: |
-            go-mod-
-
-      # Step 7: Install dependencies for `src/genai`
-      - name: Install Dependencies for GenAI Service
-        run: |
-          cd src/genai
-          echo "Initializing Go modules in src/genai"
-          go mod init genai || echo "Module already initialized"
-          go mod tidy
-          go mod download
-
-      # Step 8: Run Gosec for `src/genai`
-      - name: Run Gosec on GenAI Service
+      - name: Run Gosec Security Scanner
         uses: securego/gosec@master
         with:
           args: ./...
