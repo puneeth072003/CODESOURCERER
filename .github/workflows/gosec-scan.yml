@@ -1,4 +1,4 @@
-name: Run Gosec
+name: Run Gosec in CODESOURCERER
 on:
   push:
     branches:
