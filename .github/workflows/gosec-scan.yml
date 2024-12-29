@@ -37,6 +37,8 @@ jobs:
       - name: Install Dependencies for GitHub Service
         run: |
           cd src/github
+          echo "Initializing Go modules in src/github"
+          go mod init github || echo "Module already initialized"
           go mod tidy
           go mod download
 
@@ -61,6 +63,8 @@ jobs:
       - name: Install Dependencies for GenAI Service
         run: |
           cd src/genai
+          echo "Initializing Go modules in src/genai"
+          go mod init genai || echo "Module already initialized"
           go mod tidy
           go mod download
 
