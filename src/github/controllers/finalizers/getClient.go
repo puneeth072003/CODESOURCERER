@@ -3,10 +3,11 @@ package finalizers
 import (
 	"context"
 
+	"github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 )
 
-func getClient(installationToken string) (*github.Client, context.Context) {
+func GetClient(installationToken string) (*github.Client, context.Context) {
 	ctx := context.Background()
 
 	// Create an OAuth2 token source using the installation token
