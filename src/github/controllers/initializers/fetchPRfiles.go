@@ -3,30 +3,16 @@ package initializers
 import (
 	"encoding/json"
 	"fmt"
+	"github/utils"
 	"io"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strconv"
 )
 
-func cleanURLParams(owner, repo string, prNumber int) (string, string, error) {
-	owner = url.QueryEscape(owner)
-	repo = url.QueryEscape(repo)
-
-	githubNameRegex := regexp.MustCompile(`^[a-zA-Z0-9-]+$`)
-
-	if !githubNameRegex.MatchString(owner) || !githubNameRegex.MatchString(repo) || prNumber <= 0 {
-		return "", "", fmt.Errorf("unable to clean url params")
-	}
-
-	return owner, repo, nil
-}
-
 // Fetch the list of changed files in the pull request
 func FetchPullRequestFiles(owner, repo string, prNumber int) ([]map[string]interface{}, error) {
-
-	owner, repo, err := cleanURLParams(owner, repo, prNumber)
+	owner, repo, err := utils.CleanURLParams(owner, repo, prNumber)
 	if err != nil {
 		return nil, err
 	}
