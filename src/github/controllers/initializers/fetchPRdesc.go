@@ -3,15 +3,26 @@ package initializers
 import (
 	"encoding/json"
 	"fmt"
+	"github/utils"
 	"io"
 	"net/http"
+	"net/url"
+	"strconv"
 )
 
 // FetchPullRequestDescription fetches the description of a pull request
 func FetchPullRequestDescription(owner, repo string, prNumber int) (string, error) {
-	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/pulls/%d", owner, repo, prNumber)
+	owner, repo, err := utils.CleanURLParams(owner, repo, prNumber)
+	if err != nil {
+		return "", err
+	}
 
-	req, _ := http.NewRequest("GET", url, nil)
+	reqUrl, err := url.JoinPath("https://api.github.com", "repos", owner, repo, "pulls", strconv.Itoa(123))
+	if err != nil {
+		return "", fmt.Errorf("unable to construct request url: %v", err)
+	}
+
+	req, _ := http.NewRequest("GET", reqUrl, nil)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 
 	client := &http.Client{}
