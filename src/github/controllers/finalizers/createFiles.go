@@ -11,8 +11,8 @@ func CreateFiles(client *github.Client, ctx context.Context, owner, repo, branch
 	// Get the current file tree at the branch
 	_, _, err := client.Repositories.CreateFile(ctx, owner, repo, filePath, &github.RepositoryContentFileOptions{ // Use & here
 		Committer: &github.CommitAuthor{
-			Name:  github.String("Your Name"),
-			Email: github.String("your-email@example.com"),
+			Name:  github.String("CODESOURCERER"),
+			Email: github.String("pyd773@gmail.com"),
 		},
 		Message: github.String("Adding new file " + filePath),
 		Content: []byte(content),
