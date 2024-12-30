@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github/controllers"
 
-	"github/controllers/finalizers"
 	"github/controllers/tokenhandlers"
 	"github/utils"
 	"log"

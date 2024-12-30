@@ -3,7 +3,7 @@ package finalizers
 import (
 	"context"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v52/github"
 	"golang.org/x/oauth2"
 )
 
