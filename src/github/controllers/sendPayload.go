@@ -51,13 +51,33 @@ func SendPayload(url string, payload string) (map[string]interface{}, error) {
 }
 
 func TestSendPayload(c *gin.Context) {
-	// Define a sample payload
-	samplePayload := ""
+	samplePayload := `{
+						"merge_id": "merge_uvw456rst789xyz123abc890klm567def234_107",
+						"context": "This PR adds utility functions for date formatting and integrates these into a scheduling module.",
+						"framework": "pytest",
+						"test_directory": "tests/",
+						"comments": "off",
+						"files": [
+							{
+							"path": "date_utils.py",
+							"content": "from datetime import datetime\n\ndef format_date(date):\n    return date.strftime('%Y-%m-%d')\n\ndef parse_date(date_string):\n    return datetime.strptime(date_string, '%Y-%m-%d')",
+							"dependencies": []
+							},
+							{
+							"path": "scheduling/schedule_manager.py",
+							"content": "from date_utils import format_date, parse_date\n\ndef get_formatted_date_for_today():\n    return format_date(datetime.now())",
+							"dependencies": [
+								{
+								"name": "date_utils.py",
+								"content": "from datetime import datetime\n\ndef format_date(date):\n    return date.strftime('%Y-%m-%d')\n\ndef parse_date(date_string):\n    return datetime.strptime(date_string, '%Y-%m-%d')"
+								}
+							]
+							}
+						]
+					}`
 
-	// Define the URL (replace with actual test URL)
 	url := "http://localhost:3001/process"
 
-	// Call SendPayload and log the output
 	response, err := SendPayload(url, samplePayload)
 	if err != nil {
 		log.Printf("Error in SendPayload: %v", err)

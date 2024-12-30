@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github/controllers"
+
 	"github/controllers/finalizers"
 	"github/controllers/tokenhandlers"
 	"github/utils"
@@ -40,9 +41,8 @@ func main() {
 
 	// Start the server
 	router := gin.Default()
-	router.GET("/code", controllers.Code)               // test route
-	router.POST("/webhook", controllers.WebhookHandler) // checking for push events
-	router.GET("/parse", finalizers.TestParseServer2Response)
-	// router.GET("/testsend", controllers.TestSendPayload)
+	router.GET("/code", controllers.Code)                // test route
+	router.POST("/webhook", controllers.WebhookHandler)  // checking for push events
+	router.GET("/testsend", controllers.TestSendPayload) // test route for payload generation
 	router.Run(":3000")
 }
