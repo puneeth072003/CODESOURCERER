@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v52/github"
 )
 
 func CreateFiles(client *github.Client, ctx context.Context, owner, repo, branch, filePath, content string) error {

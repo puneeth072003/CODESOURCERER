@@ -3,6 +3,8 @@ package finalizers
 import (
 	"context"
 	"fmt"
+
+	"github.com/google/go-github/v52/github"
 )
 
 func CreateBranch(client *github.Client, ctx context.Context, owner, repo, newBranchName string) error {

@@ -3,6 +3,8 @@ package finalizers
 import (
 	"context"
 	"fmt"
+
+	"github.com/google/go-github/v52/github"
 )
 
 func CreateDraftPR(client *github.Client, ctx context.Context, owner, repo, title, headBranch, baseBranch, body string) error {
