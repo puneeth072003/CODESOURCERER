@@ -3,11 +3,13 @@ package finalizers
 import (
 	"context"
 	"fmt"
+
+	"github.com/google/go-github/github"
 )
 
 func CreateFiles(client *github.Client, ctx context.Context, owner, repo, branch, filePath, content string) error {
 	// Get the current file tree at the branch
-	_, _, err := client.Repositories.CreateFile(ctx, owner, repo, filePath, github.RepositoryContentFileOptions{
+	_, _, err := client.Repositories.CreateFile(ctx, owner, repo, filePath, &github.RepositoryContentFileOptions{ // Use & here
 		Committer: &github.CommitAuthor{
 			Name:  github.String("Your Name"),
 			Email: github.String("your-email@example.com"),
