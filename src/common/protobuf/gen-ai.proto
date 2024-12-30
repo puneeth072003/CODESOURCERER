@@ -8,10 +8,15 @@ service GenAiService {
   rpc GenerateTestFiles(GithubContextRequest) returns (GeneratedTestsResponse) {}
 }
 
-message SourceFilesPayload {
+message SourceFileDependencyPayload {
+  string name = 1;
+  string content = 2;
+}
+
+message SourceFilePayload {
   string path = 1;
   string content = 2;
-  repeated SourceFilesPayload dependencies = 3;
+  repeated SourceFileDependencyPayload dependencies = 3;
 }
 
 message GithubContextRequest {
@@ -20,10 +25,10 @@ message GithubContextRequest {
   string framework = 3;
   string test_directory = 4;
   string comments = 5;
-  repeated SourceFilesPayload files = 6;
+  repeated SourceFilePayload files = 6;
 }
 
-message TestFilesPayload {
+message TestFilePayload {
   string testname = 1;
   string testfilepath = 2;
   string parentpath = 3;
@@ -31,5 +36,5 @@ message TestFilesPayload {
 }
 
 message GeneratedTestsResponse {
-  repeated TestFilesPayload tests = 1;
+  repeated TestFilePayload tests = 1;
 }
