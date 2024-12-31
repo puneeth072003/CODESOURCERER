@@ -15,7 +15,7 @@ func GenerateTestFiles(tests []struct {
 }) error {
 	for _, test := range tests {
 		dir := filepath.Dir(test.TestPath)
-		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		if err := os.MkdirAll(dir, 0750); err != nil {
 			return fmt.Errorf("unable to create directory %s: %w", dir, err)
 		}
 		file, err := os.Create(test.TestPath)
