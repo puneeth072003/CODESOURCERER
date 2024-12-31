@@ -152,6 +152,16 @@ func WebhookHandler(c *gin.Context) {
 
 	mergeID := fmt.Sprintf("merge_%s_%d", commitSHA, pullRequestNumber)
 
+	// yml content fetch
+	log.Printf("fetching content from yaml file of repository")
+	responseymldata, err := initializers.FetchAndReturnYAMLContents(repoOwner, repoName, commitSHA, "codesourcerer-config.yml")
+	if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
+
+	// log the responseymldata
+	log.Printf("YAML Data Retrieved: %+v", responseymldata)
+
 	// Fetch PR description and dependencies
 	prDescription, err := initializers.FetchPullRequestDescription(repoOwner, repoName, pullRequestNumber)
 	if err != nil {
