@@ -3,15 +3,26 @@ package initializers
 import (
 	"encoding/json"
 	"fmt"
+	"github/utils"
 	"io"
 	"net/http"
+	"net/url"
+	"strconv"
 )
 
 // Fetch the list of changed files in the pull request
 func FetchPullRequestFiles(owner, repo string, prNumber int) ([]map[string]interface{}, error) {
-	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/pulls/%d/files", owner, repo, prNumber)
+	owner, repo, err := utils.CleanURLParams(owner, repo, prNumber)
+	if err != nil {
+		return nil, err
+	}
 
-	req, _ := http.NewRequest("GET", url, nil)
+	reqUrl, err := url.JoinPath("https://api.github.com", "repos", owner, repo, "pulls", strconv.Itoa(123), "files")
+	if err != nil {
+		return nil, fmt.Errorf("unable to construct request url: %v", err)
+	}
+
+	req, _ := http.NewRequest("GET", reqUrl, nil)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 
 	client := &http.Client{}
