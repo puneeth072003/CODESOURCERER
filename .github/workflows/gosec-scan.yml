@@ -46,11 +46,13 @@ jobs:
         run: |
           cd src/github
           go mod tidy
+          go mod download
 
       - name: Install Dependencies for GenAI Service
         run: |
           cd src/genAi
           go mod tidy
+          go mod download
 
       - name: Run Gosec for Github Service
         uses: securego/gosec@master
