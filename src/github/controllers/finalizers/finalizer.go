@@ -7,7 +7,14 @@ import (
 	"log"
 )
 
-func Finalize(installationToken string, owner string, repo string, filePath string, fileContent string) error {
+type TestsResponseFormat struct {
+	TestName     string `json:"testname"`
+	TestFilePath string `json:"testfilepath"`
+	ParentPath   string `json:"parentpath"`
+	Code         string `json:"code"`
+}
+
+func Finalize(installationToken string, owner string, repo string, testFiles []TestsResponseFormat) error {
 
 	// Get GitHub client
 	client, ctx := GetClient(installationToken)
@@ -27,13 +34,13 @@ func Finalize(installationToken string, owner string, repo string, filePath stri
 		return err
 	}
 
-	// Add a sample file with content
-	// filePath := "sample.txt"
-	// fileContent := "This is a sample file content."
-	err = CreateFiles(client, ctx, owner, repo, newBranchName, filePath, fileContent)
-	if err != nil {
-		log.Fatalf("Error creating file: %v", err)
-		return err
+	// Add the test files with content
+	for _, testFile := range testFiles {
+		err = CreateFiles(client, ctx, owner, repo, newBranchName, testFile.TestFilePath, testFile.Code)
+		if err != nil {
+			log.Fatalf("Error creating file %s: %v", testFile.TestFilePath, err)
+			return err
+		}
 	}
 
 	// Draft a pull request from the new branch

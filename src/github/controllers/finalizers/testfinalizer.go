@@ -42,7 +42,20 @@ func TestFinalize(c *gin.Context) {
 	}
 
 	// Call Finalize with the token and other parameters
-	err = Finalize(token, "puneeth072003", "testing-CS", "sample.txt", "hi there")
+	err = Finalize(token, "puneeth072003", "testing-CS", []TestsResponseFormat{
+		{
+			TestName:     "test_list_utils",
+			TestFilePath: "tests/test_list_utils.py",
+			ParentPath:   "list_utils.py",
+			Code:         "# Coughed up by CODESOURCERER",
+		},
+		{
+			TestName:     "test_calculate_stats",
+			TestFilePath: "tests/test_calculate_stats.py",
+			ParentPath:   "statistics/calculate_stats.py",
+			Code:         "# Coughed up by CODESOURCERER",
+		},
+	})
 	if err != nil {
 		log.Printf("Error finalizing: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finalizing"})
