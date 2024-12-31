@@ -7,6 +7,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/google/go-github/v52 v52.0.0
 	golang.org/x/oauth2 v0.24.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -38,5 +39,4 @@ require (
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

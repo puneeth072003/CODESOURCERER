@@ -4,6 +4,7 @@ import (
 	"github/utils"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -33,7 +34,7 @@ func GetJWT() string {
 }
 
 func GenerateJWT(appID string, privkeyPath string) (string, error) {
-	privkeyBytes, err := os.ReadFile(privkeyPath)
+	privkeyBytes, err := os.ReadFile(filepath.Clean(privkeyPath))
 	if err != nil {
 		return "", err
 	}
