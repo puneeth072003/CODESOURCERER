@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github/controllers"
-
+	"github/controllers/finalizers"
 	"github/controllers/tokenhandlers"
 	"github/utils"
 	"log"
@@ -43,5 +43,6 @@ func main() {
 	router.GET("/code", controllers.Code)                // test route
 	router.POST("/webhook", controllers.WebhookHandler)  // checking for push events
 	router.GET("/testsend", controllers.TestSendPayload) // test route for payload generation
+	router.GET("/testfinalizer", finalizers.TestFinalize)
 	router.Run(":3000")
 }
