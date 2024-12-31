@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+	"strconv"
 )
 
 type TestsResponseFormat struct {
@@ -36,7 +37,12 @@ func Finalize(installationToken string, owner string, repo string, testFiles []T
 
 	// Add the test files with content
 	for _, testFile := range testFiles {
-		err = CreateFiles(client, ctx, owner, repo, newBranchName, testFile.TestFilePath, testFile.Code)
+		actualString, err := strconv.Unquote(`"` + testFile.Code + `"`)
+		if err != nil {
+			log.Fatalf("Error decoding string: %v", err)
+			return err
+		}
+		err = CreateFiles(client, ctx, owner, repo, newBranchName, testFile.TestFilePath, actualString)
 		if err != nil {
 			log.Fatalf("Error creating file %s: %v", testFile.TestFilePath, err)
 			return err
