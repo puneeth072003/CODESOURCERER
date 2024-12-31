@@ -3,13 +3,14 @@ package utils
 import (
 	"bufio"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 func Loadenv(filePath string) (map[string]string, error) {
 	envs := make(map[string]string)
 
-	file, err := os.Open(filePath)
+	file, err := os.Open(filepath.Clean(filePath))
 	if err != nil {
 		return nil, err
 	}
