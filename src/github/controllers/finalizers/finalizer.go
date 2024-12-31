@@ -38,9 +38,9 @@ func Finalize(installationToken string, owner string, repo string, filePath stri
 
 	// Draft a pull request from the new branch
 	prTitle := "chore: tests generated for the code added"          // hardcoded for now
-	baseBranch := "testing"                                         // hardcoded for now
+	baseBranch := "main"                                            // hardcoded for now
 	prBody := "This is a draft PR created from the sandbox branch." // hardcoded for now
-	err = CreateDraftPR(client, ctx, owner, repo, prTitle, newBranchName, baseBranch, prBody)
+	err = CreatePR(client, ctx, owner, repo, prTitle, newBranchName, baseBranch, prBody)
 	if err != nil {
 		log.Fatalf("Error creating draft PR: %v", err)
 		return err
