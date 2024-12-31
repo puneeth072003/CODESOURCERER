@@ -22,6 +22,26 @@ jobs:
         with:
           go-version: 1.23
 
+      - name: Cache Go Modules for Github Service
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/go/pkg/mod
+            src/github/go.sum
+          key: ${{ runner.os }}-go-${{ hashFiles('src/github/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Cache Go Modules for GenAI Service
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/go/pkg/mod
+            src/genAi/go.sum
+          key: ${{ runner.os }}-go-${{ hashFiles('src/genAi/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
       - name: Install Dependencies for Github Service
         run: |
           cd src/github
