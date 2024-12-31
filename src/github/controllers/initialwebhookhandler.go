@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"github/controllers/finalizers"
 	"github/controllers/initializers"
 	"sync"
 
@@ -214,13 +215,21 @@ func WebhookHandler(c *gin.Context) {
 	log.Print("Waiting for the response from Server 2...")
 	// Now we wait for responseData
 	log.Printf("Response from Server 2: %v", server2Response)
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Payload processed and forwarded successfully",
-		"server2": server2Response,
-	})
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Test files generated and draft PR created successfully",
-	})
+	installationToken := "your_installation_token"    // Replace with actual token
+	owner := "your_repo_owner"                        // Replace with actual owner
+	repo := "your_repo_name"                          // Replace with actual repo name
+	filePath := "path/to/your/file.txt"               // Replace with actual file path
+	fileContent := "This is the content of the file." // Replace with actual file content
+
+	// Finalize the request
+	err = finalizers.Finalize(installationToken, owner, repo, filePath, fileContent)
+	if err != nil {
+		log.Printf("Error finalizing the request: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Error finalizing",
+		})
+		return
+	}
 
 }
