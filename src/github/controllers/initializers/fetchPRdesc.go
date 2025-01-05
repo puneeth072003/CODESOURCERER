@@ -17,7 +17,7 @@ func FetchPullRequestDescription(owner, repo string, prNumber int) (string, erro
 		return "", err
 	}
 
-	reqUrl, err := url.JoinPath("https://api.github.com", "repos", owner, repo, "pulls", strconv.Itoa(123))
+	reqUrl, err := url.JoinPath("https://api.github.com", "repos", owner, repo, "pulls", strconv.Itoa(prNumber))
 	if err != nil {
 		return "", fmt.Errorf("unable to construct request url: %v", err)
 	}

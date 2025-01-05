@@ -17,7 +17,7 @@ func FetchPullRequestFiles(owner, repo string, prNumber int) ([]map[string]inter
 		return nil, err
 	}
 
-	reqUrl, err := url.JoinPath("https://api.github.com", "repos", owner, repo, "pulls", strconv.Itoa(123), "files")
+	reqUrl, err := url.JoinPath("https://api.github.com", "repos", owner, repo, "pulls", strconv.Itoa(prNumber), "files")
 	if err != nil {
 		return nil, fmt.Errorf("unable to construct request url: %v", err)
 	}

@@ -4,37 +4,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"github/controllers/initializers"
+	"github/handlers"
 	"sync"
 
 	"io"
 	"log"
 	"net/http"
 
+	pb "protobuf/generated"
+
 	"github.com/gin-gonic/gin"
 )
 
-type Response struct {
-	MergeID       string `json:"merge_id"`
-	Context       string `json:"context"`
-	Framework     string `json:"framework"`
-	TestDirectory string `json:"test_directory"`
-	Comments      string `json:"comments"`
-	Files         []File `json:"files"`
-}
-
-type File struct {
-	Path         string       `json:"path"`
-	Content      string       `json:"content"`
-	Dependencies []Dependency `json:"dependencies"`
-}
-
-type Dependency struct {
-	Name    string `json:"name"`
-	Content string `json:"content"`
-}
-
-func getFileContents(fileContents []map[string]interface{}, repoOwner, repoName, commitSHA string) <-chan File {
-	outChan := make(chan File)
+func getFileContents(fileContents []map[string]interface{}, repoOwner, repoName, commitSHA string) <-chan *pb.SourceFilePayload {
+	outChan := make(chan *pb.SourceFilePayload)
 
 	go func() {
 		for _, f := range fileContents {
@@ -48,7 +31,7 @@ func getFileContents(fileContents []map[string]interface{}, repoOwner, repoName,
 				log.Printf("Successfully fetched content for file: %s", filePath)
 			}
 
-			outChan <- File{
+			outChan <- &pb.SourceFilePayload{
 				Path:    filePath,
 				Content: fileContent,
 			}
@@ -59,19 +42,19 @@ func getFileContents(fileContents []map[string]interface{}, repoOwner, repoName,
 	return outChan
 }
 
-func getDependencyContents(fileChan <-chan File, dependencies map[string][]string, repoOwner, repoName, commitSHA string) <-chan File {
-	outChan := make(chan File)
+func getDependencyContents(fileChan <-chan *pb.SourceFilePayload, dependencies map[string][]string, repoOwner, repoName, commitSHA string) <-chan *pb.SourceFilePayload {
+	outChan := make(chan *pb.SourceFilePayload)
 
 	go func() {
 		for f := range fileChan {
 			fileDependencies := FilterDependenciesForFile(f.Path, dependencies)
 			var wg sync.WaitGroup
-			depChan := make(chan Dependency, len(fileDependencies))
+			depChan := make(chan *pb.SourceFileDependencyPayload, len(fileDependencies))
 
 			for _, dep := range fileDependencies {
 				wg.Add(1)
 
-				go func(channel chan<- Dependency, dep string) {
+				go func(channel chan<- *pb.SourceFileDependencyPayload, dep string) {
 					defer wg.Done()
 
 					depContent, err := initializers.FetchFileContentFromGitHub(repoOwner, repoName, commitSHA, dep)
@@ -82,7 +65,7 @@ func getDependencyContents(fileChan <-chan File, dependencies map[string][]strin
 						log.Printf("Successfully fetched content for dependency: %s", dep)
 					}
 
-					channel <- Dependency{
+					channel <- &pb.SourceFileDependencyPayload{
 						Name:    dep,
 						Content: depContent,
 					}
@@ -92,7 +75,7 @@ func getDependencyContents(fileChan <-chan File, dependencies map[string][]strin
 			wg.Wait()
 			close(depChan)
 
-			var deps []Dependency
+			var deps []*pb.SourceFileDependencyPayload
 
 			for d := range depChan {
 				deps = append(deps, d)
@@ -176,8 +159,8 @@ func WebhookHandler(c *gin.Context) {
 	log.Printf("Context: %s", context)
 
 	// Initialize the responseData structure
-	responseData := Response{
-		MergeID:       mergeID,
+	payload := pb.GithubContextRequest{
+		MergeId:       mergeID,
 		Context:       context,
 		Framework:     "pytest", // Hardcoded framework
 		TestDirectory: "tests/", // Hardcoded test directory
@@ -199,19 +182,12 @@ func WebhookHandler(c *gin.Context) {
 	fileChan = getDependencyContents(fileChan, dependencies, repoOwner, repoName, commitSHA)
 
 	for f := range fileChan {
-		responseData.Files = append(responseData.Files, f)
+		payload.Files = append(payload.Files, f)
 	}
 
-	jsonData, err := json.MarshalIndent(responseData, "", "  ")
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
+	log.Println("##### Constructed payload:", payload.String()) // basically string form of unsigned int data
 
-	log.Println("##### Constructed payload:", string(jsonData)) // basically string form of unsigned int data
-
-	server2URL := "http://localhost:3001/process"
-	server2Response, err := SendPayload(server2URL, string(jsonData))
+	generatedTests, err := handlers.GetGeneratedTestsFromGenAI(&payload)
 	if err != nil {
 		log.Printf("Error sending payload to Server 2: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -223,7 +199,7 @@ func WebhookHandler(c *gin.Context) {
 
 	log.Print("Waiting for the response from Server 2...")
 	// Now we wait for responseData
-	log.Printf("Response from Server 2: %v", server2Response)
+  log.Printf("Response from Server 2: %v", generatedTests.String())
 
 	// installationToken := "your_installation_token"    // Replace with actual token
 	// owner := "your_repo_owner"                        // Replace with actual owner
@@ -240,5 +216,15 @@ func WebhookHandler(c *gin.Context) {
 	// 	})
 	// 	return
 	// }
+
+  // TODO: Remove this after Completion
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Payload processed and forwarded successfully",
+		"server2": &generatedTests,
+	})
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Test files generated and draft PR created successfully",
+	})
 
 }
