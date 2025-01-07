@@ -7,7 +7,6 @@ import (
 	"github/controllers/initializers"
 	"github/controllers/tokenhandlers"
 	"github/handlers"
-	"reflect"
 	"sync"
 
 	"io"
@@ -205,8 +204,6 @@ func WebhookHandler(c *gin.Context) {
 	// Now we wait for responseData
 	log.Printf("Response from Server 2: %v", generatedTests)
 
-	log.Println(reflect.TypeOf(generatedTests))                                      // basically string form of unsigned int data
-	log.Printf("################%s#######################", generatedTests.Tests[0]) // basically string form of unsigned int data
 	// Get the token from the TokenManager
 	token, err := tokenhandlers.GetInstance().GetToken()
 	if err != nil {

@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
-	"strconv"
 
 	pb "protobuf/generated"
 )
@@ -17,10 +16,10 @@ type TestsResponseFormat struct {
 	Code         string `json:"code"`
 }
 
-func Finalize(installationToken string, owner string, repo string, testspointer *pb.GeneratedTestsResponse) error {
+func Finalize(installationToken string, owner string, repo string, tests *pb.GeneratedTestsResponse) error {
 	// Step 1: Convert the tests to a slice of TestsResponseFormat
 	var testFiles []TestsResponseFormat
-	for _, test := range testspointer.Tests {
+	for _, test := range tests.Tests {
 		testFiles = append(testFiles, TestsResponseFormat{
 			TestName:     test.Testname,
 			TestFilePath: test.Testfilepath,
@@ -49,15 +48,8 @@ func Finalize(installationToken string, owner string, repo string, testspointer 
 
 	// Step 5: Add the test files with content
 	for _, testFile := range testFiles {
-		// Decode the test file content (if necessary)
-		actualString, err := strconv.Unquote(`"` + testFile.Code + `"`)
-		if err != nil {
-			log.Fatalf("Error decoding string: %v", err)
-			return err
-		}
-
-		// Create the file in the repository
-		err = CreateFiles(client, ctx, owner, repo, newBranchName, testFile.TestFilePath, actualString)
+		// Directly use the test file content without unquoting
+		err = CreateFiles(client, ctx, owner, repo, newBranchName, testFile.TestFilePath, testFile.Code)
 		if err != nil {
 			log.Fatalf("Error creating file %s: %v", testFile.TestFilePath, err)
 			return err
