@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github/handlers"
 	"io"
 	"log"
 	"net/http"
 	"time"
+
+	pb "protobuf/generated"
 
 	"github.com/gin-gonic/gin"
 )
@@ -51,34 +54,33 @@ func SendPayload(url string, payload string) (map[string]interface{}, error) {
 }
 
 func TestSendPayload(c *gin.Context) {
-	samplePayload := `{
-						"merge_id": "merge_uvw456rst789xyz123abc890klm567def234_107",
-						"context": "This PR adds utility functions for date formatting and integrates these into a scheduling module.",
-						"framework": "pytest",
-						"test_directory": "tests/",
-						"comments": "off",
-						"files": [
-							{
-							"path": "date_utils.py",
-							"content": "from datetime import datetime\n\ndef format_date(date):\n    return date.strftime('%Y-%m-%d')\n\ndef parse_date(date_string):\n    return datetime.strptime(date_string, '%Y-%m-%d')",
-							"dependencies": []
-							},
-							{
-							"path": "scheduling/schedule_manager.py",
-							"content": "from date_utils import format_date, parse_date\n\ndef get_formatted_date_for_today():\n    return format_date(datetime.now())",
-							"dependencies": [
-								{
-								"name": "date_utils.py",
-								"content": "from datetime import datetime\n\ndef format_date(date):\n    return date.strftime('%Y-%m-%d')\n\ndef parse_date(date_string):\n    return datetime.strptime(date_string, '%Y-%m-%d')"
-								}
-							]
-							}
-						]
-					}`
 
-	url := "http://localhost:3001/process"
+	samplePayload := pb.GithubContextRequest{
+		MergeId:       "merge_uvw456rst789xyz123abc890klm567def234_107",
+		Context:       "This PR adds utility functions for date formatting and integrates these into a scheduling module.",
+		Framework:     "pytest",
+		TestDirectory: "tests/",
+		Comments:      "off",
+		Files: []*pb.SourceFilePayload{
+			{
+				Path:         "date_utils.py",
+				Content:      "from datetime import datetime\n\ndef format_date(date):\n    return date.strftime('%Y-%m-%d')\n\ndef parse_date(date_string):\n    return datetime.strptime(date_string, '%Y-%m-%d')",
+				Dependencies: []*pb.SourceFileDependencyPayload{},
+			},
+			{
+				Path:    "scheduling/schedule_manager.py",
+				Content: "from date_utils import format_date, parse_date\n\ndef get_formatted_date_for_today():\n    return format_date(datetime.now())",
+				Dependencies: []*pb.SourceFileDependencyPayload{
+					{
+						Name:    "date_utils.py",
+						Content: "from datetime import datetime\n\ndef format_date(date):\n    return date.strftime('%Y-%m-%d')\n\ndef parse_date(date_string):\n    return datetime.strptime(date_string, '%Y-%m-%d')",
+					},
+				},
+			},
+		},
+	}
 
-	response, err := SendPayload(url, samplePayload)
+	response, err := handlers.GetGeneratedTestsFromGenAI(&samplePayload)
 	if err != nil {
 		log.Printf("Error in SendPayload: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

@@ -1,4 +1,5 @@
 name: Run Gosec in CODESOURCERER
+
 on:
   push:
     branches:
@@ -6,15 +7,59 @@ on:
   pull_request:
     branches:
       - main
+
 jobs:
-  tests:
+  security-scan:
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on
     steps:
       - name: Checkout Source
         uses: actions/checkout@v3
-      - name: Run Gosec Security Scanner
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.23
+
+      - name: Cache Go Modules for Github Service
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/go/pkg/mod
+            src/github/go.sum
+          key: ${{ runner.os }}-go-${{ hashFiles('src/github/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Cache Go Modules for GenAI Service
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/go/pkg/mod
+            src/genAi/go.sum
+          key: ${{ runner.os }}-go-${{ hashFiles('src/genAi/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install Dependencies for Github Service
+        run: |
+          cd src/github
+          go mod tidy
+          go mod download
+
+      - name: Install Dependencies for GenAI Service
+        run: |
+          cd src/genAi
+          go mod tidy
+          go mod download
+
+      - name: Run Gosec for Github Service
         uses: securego/gosec@master
         with:
-          args: ./...
+          args: ./src/github/...
+
+      - name: Run Gosec for GenAI Service
+        uses: securego/gosec@master
+        with:
+          args: ./src/genAi/...
