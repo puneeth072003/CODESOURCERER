@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+
+	pb "protobuf/generated"
 )
 
 type TestsResponseFormat struct {
@@ -15,14 +17,17 @@ type TestsResponseFormat struct {
 	Code         string `json:"code"`
 }
 
-func Finalize(installationToken string, owner string, repo string, testFiles *generated.GeneratedTestsResponse) error {
-	// Step 1: Parse the JSON string into a slice of TestsResponseFormat
-	// var testFiles []TestsResponseFormat
-	// err := json.Unmarshal([]byte(testFilesJSON), &testFiles)
-	// if err != nil {
-	// 	log.Fatalf("Error parsing test files JSON: %v", err)
-	// 	return err
-	// }
+func Finalize(installationToken string, owner string, repo string, testspointer *pb.GeneratedTestsResponse) error {
+	// Step 1: Convert the tests to a slice of TestsResponseFormat
+	var testFiles []TestsResponseFormat
+	for _, test := range testspointer.Tests {
+		testFiles = append(testFiles, TestsResponseFormat{
+			TestName:     test.Testname,
+			TestFilePath: test.Testfilepath,
+			ParentPath:   test.Parentpath,
+			Code:         test.Code,
+		})
+	}
 
 	// Step 2: Get GitHub client
 	client, ctx := GetClient(installationToken)
@@ -59,7 +64,7 @@ func Finalize(installationToken string, owner string, repo string, testFiles *ge
 		}
 	}
 
-	// Step 6: Draft a pull request from the new branch
+	// Step 6: Create a pull request from the new branch
 	prTitle := "chore: tests generated for the code added"          // hardcoded for now
 	baseBranch := "main"                                            // hardcoded for now
 	prBody := "This is a draft PR created from the sandbox branch." // hardcoded for now

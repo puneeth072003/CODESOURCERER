@@ -3,7 +3,9 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"github/controllers/finalizers"
 	"github/controllers/initializers"
+	"github/controllers/tokenhandlers"
 	"github/handlers"
 	"reflect"
 	"sync"
@@ -206,17 +208,17 @@ func WebhookHandler(c *gin.Context) {
 	log.Println(reflect.TypeOf(generatedTests))                                      // basically string form of unsigned int data
 	log.Printf("################%s#######################", generatedTests.Tests[0]) // basically string form of unsigned int data
 	// Get the token from the TokenManager
-	// token, err := tokenhandlers.GetInstance().GetToken()
-	// if err != nil {
-	// 	log.Printf("Error getting token: %v", err)
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting token"})
-	// 	return
-	// }
+	token, err := tokenhandlers.GetInstance().GetToken()
+	if err != nil {
+		log.Printf("Error getting token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting token"})
+		return
+	}
 
-	// err = finalizers.Finalize(token, repoOwner, repoName, generatedTests.String())
-	// if err != nil {
-	// 	log.Printf("Error finalizing: %v", err)
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finalizing"})
-	// 	return
-	// }
+	err = finalizers.Finalize(token, repoOwner, repoName, generatedTests)
+	if err != nil {
+		log.Printf("Error finalizing: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finalizing"})
+		return
+	}
 }
