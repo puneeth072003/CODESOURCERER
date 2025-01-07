@@ -19,6 +19,7 @@ type Response struct {
 	Framework     string `json:"framework"`
 	TestDirectory string `json:"test_directory"`
 	Comments      string `json:"comments"`
+	WaterMark     string `json:"water-mark"`
 	Files         []File `json:"files"`
 }
 
