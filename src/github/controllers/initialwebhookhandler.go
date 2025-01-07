@@ -162,9 +162,9 @@ func WebhookHandler(c *gin.Context) {
 	payload := pb.GithubContextRequest{
 		MergeId:       mergeID,
 		Context:       context,
-		Framework:     "pytest", // Hardcoded framework
-		TestDirectory: "tests/", // Hardcoded test directory
-		Comments:      "off",    // Hardcoded comments setting
+		Framework:     responseymldata.Configuration.TestingFramework, // Hardcoded framework
+		TestDirectory: responseymldata.Configuration.TestDirectory,    // Hardcoded test directory
+		Comments:      responseymldata.Configuration.Comments,         // Hardcoded comments setting
 	}
 
 	// Fetch files changed in the PR
