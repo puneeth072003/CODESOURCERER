@@ -3,7 +3,9 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"github/controllers/finalizers"
 	"github/controllers/initializers"
+	"github/controllers/tokenhandlers"
 	"github/handlers"
 	"sync"
 
@@ -162,9 +164,9 @@ func WebhookHandler(c *gin.Context) {
 	payload := pb.GithubContextRequest{
 		MergeId:       mergeID,
 		Context:       context,
-		Framework:     "pytest", // Hardcoded framework
-		TestDirectory: "tests/", // Hardcoded test directory
-		Comments:      "off",    // Hardcoded comments setting
+		Framework:     responseymldata.Configuration.TestingFramework, // Hardcoded framework
+		TestDirectory: responseymldata.Configuration.TestDirectory,    // Hardcoded test directory
+		Comments:      responseymldata.Configuration.Comments,         // Hardcoded comments setting
 	}
 
 	// Fetch files changed in the PR
@@ -185,7 +187,8 @@ func WebhookHandler(c *gin.Context) {
 		payload.Files = append(payload.Files, f)
 	}
 
-	log.Println("##### Constructed payload:", payload.String()) // basically string form of unsigned int data
+	// log.Println("##### Constructed payload:", payload.String()) // basically string form of unsigned int data
+	log.Printf("Constructed payload and now sending it to Server 2...")
 
 	generatedTests, err := handlers.GetGeneratedTestsFromGenAI(&payload)
 	if err != nil {
@@ -199,14 +202,20 @@ func WebhookHandler(c *gin.Context) {
 
 	log.Print("Waiting for the response from Server 2...")
 	// Now we wait for responseData
-	log.Printf("Response from Server 2: %v", generatedTests.String())
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Payload processed and forwarded successfully",
-		"server2": &generatedTests,
-	})
+	log.Printf("Response from Server 2: %v", generatedTests)
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Test files generated and draft PR created successfully",
-	})
+	// Get the token from the TokenManager
+	token, err := tokenhandlers.GetInstance().GetToken()
+	if err != nil {
+		log.Printf("Error getting token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting token"})
+		return
+	}
 
+	err = finalizers.Finalize(token, repoOwner, repoName, generatedTests)
+	if err != nil {
+		log.Printf("Error finalizing: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finalizing"})
+		return
+	}
 }
