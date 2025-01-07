@@ -3,9 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"github/controllers/finalizers"
 	"github/controllers/initializers"
-	"github/controllers/tokenhandlers"
 	"github/handlers"
 	"sync"
 
@@ -187,7 +185,8 @@ func WebhookHandler(c *gin.Context) {
 		payload.Files = append(payload.Files, f)
 	}
 
-	log.Println("##### Constructed payload:", payload.String()) // basically string form of unsigned int data
+	// log.Println("##### Constructed payload:", payload.String()) // basically string form of unsigned int data
+	log.Printf("Constructed payload and now sending it to Server 2...")
 
 	generatedTests, err := handlers.GetGeneratedTestsFromGenAI(&payload)
 	if err != nil {
@@ -203,44 +202,35 @@ func WebhookHandler(c *gin.Context) {
 	// Now we wait for responseData
 	log.Printf("Response from Server 2: %v", generatedTests.String())
 
+	type Test struct {
+		TestName     string `json:"testname"`
+		TestFilePath string `json:"testfilepath"`
+		ParentPath   string `json:"parentpath"`
+		Code         string `json:"code"`
+	}
+
+	type GeneratedTests struct {
+		Tests []Test `json:"tests"`
+	}
+	var generatedTestsStruct GeneratedTests
+	if err := json.Unmarshal([]byte(generatedTests.String()), &generatedTestsStruct); err != nil {
+		log.Printf("Error unmarshalling generated tests in phase 2: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error unmarshalling generated tests"})
+		return
+	}
+	log.Printf("################%s#######################", generatedTestsStruct.Tests[0].TestName) // basically string form of unsigned int data
 	// Get the token from the TokenManager
-	token, err := tokenhandlers.GetInstance().GetToken()
-	if err != nil {
-		log.Printf("Error getting token: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting token"})
-		return
-	}
-
-	err = finalizers.Finalize(token, repoOwner, repoName, generatedTests.String())
-	if err != nil {
-		log.Printf("Error finalizing: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finalizing"})
-		return
-	}
-	// installationToken := "your_installation_token"    // Replace with actual token
-	// owner := "your_repo_owner"                        // Replace with actual owner
-	// repo := "your_repo_name"                          // Replace with actual repo name
-	// filePath := "path/to/your/file.txt"               // Replace with actual file path
-	// fileContent := "This is the content of the file." // Replace with actual file content
-
-	// // Finalize the request
-	// err = finalizers.Finalize(installationToken, owner, repo, filePath, fileContent)
+	// token, err := tokenhandlers.GetInstance().GetToken()
 	// if err != nil {
-	// 	log.Printf("Error finalizing the request: %v", err)
-	// 	c.JSON(http.StatusInternalServerError, gin.H{
-	// 		"message": "Error finalizing",
-	// 	})
+	// 	log.Printf("Error getting token: %v", err)
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting token"})
 	// 	return
 	// }
 
-	// TODO: Remove this after Completion
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Payload processed and forwarded successfully",
-		"server2": &generatedTests,
-	})
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Test files generated and draft PR created successfully",
-	})
-
+	// err = finalizers.Finalize(token, repoOwner, repoName, generatedTests.String())
+	// if err != nil {
+	// 	log.Printf("Error finalizing: %v", err)
+	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finalizing"})
+	// 	return
+	// }
 }
