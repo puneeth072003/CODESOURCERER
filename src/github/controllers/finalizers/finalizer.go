@@ -3,7 +3,6 @@ package finalizers
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -16,14 +15,14 @@ type TestsResponseFormat struct {
 	Code         string `json:"code"`
 }
 
-func Finalize(installationToken string, owner string, repo string, testFilesJSON string) error {
+func Finalize(installationToken string, owner string, repo string, testFiles *generated.GeneratedTestsResponse) error {
 	// Step 1: Parse the JSON string into a slice of TestsResponseFormat
-	var testFiles []TestsResponseFormat
-	err := json.Unmarshal([]byte(testFilesJSON), &testFiles)
-	if err != nil {
-		log.Fatalf("Error parsing test files JSON: %v", err)
-		return err
-	}
+	// var testFiles []TestsResponseFormat
+	// err := json.Unmarshal([]byte(testFilesJSON), &testFiles)
+	// if err != nil {
+	// 	log.Fatalf("Error parsing test files JSON: %v", err)
+	// 	return err
+	// }
 
 	// Step 2: Get GitHub client
 	client, ctx := GetClient(installationToken)

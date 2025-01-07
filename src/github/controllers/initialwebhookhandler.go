@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github/controllers/initializers"
 	"github/handlers"
+	"reflect"
 	"sync"
 
 	"io"
@@ -200,25 +201,10 @@ func WebhookHandler(c *gin.Context) {
 
 	log.Print("Waiting for the response from Server 2...")
 	// Now we wait for responseData
-	log.Printf("Response from Server 2: %v", generatedTests.String())
+	log.Printf("Response from Server 2: %v", generatedTests)
 
-	type Test struct {
-		TestName     string `json:"testname"`
-		TestFilePath string `json:"testfilepath"`
-		ParentPath   string `json:"parentpath"`
-		Code         string `json:"code"`
-	}
-
-	type GeneratedTests struct {
-		Tests []Test `json:"tests"`
-	}
-	var generatedTestsStruct GeneratedTests
-	if err := json.Unmarshal([]byte(generatedTests.String()), &generatedTestsStruct); err != nil {
-		log.Printf("Error unmarshalling generated tests in phase 2: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error unmarshalling generated tests"})
-		return
-	}
-	log.Printf("################%s#######################", generatedTestsStruct.Tests[0].TestName) // basically string form of unsigned int data
+	log.Println(reflect.TypeOf(generatedTests))                                      // basically string form of unsigned int data
+	log.Printf("################%s#######################", generatedTests.Tests[0]) // basically string form of unsigned int data
 	// Get the token from the TokenManager
 	// token, err := tokenhandlers.GetInstance().GetToken()
 	// if err != nil {
