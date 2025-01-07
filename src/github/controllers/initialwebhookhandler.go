@@ -3,7 +3,9 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"github/controllers/finalizers"
 	"github/controllers/initializers"
+	"github/controllers/tokenhandlers"
 	"github/handlers"
 	"sync"
 
@@ -201,6 +203,20 @@ func WebhookHandler(c *gin.Context) {
 	// Now we wait for responseData
 	log.Printf("Response from Server 2: %v", generatedTests.String())
 
+	// Get the token from the TokenManager
+	token, err := tokenhandlers.GetInstance().GetToken()
+	if err != nil {
+		log.Printf("Error getting token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting token"})
+		return
+	}
+
+	err = finalizers.Finalize(token, repoOwner, repoName, generatedTests.String())
+	if err != nil {
+		log.Printf("Error finalizing: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finalizing"})
+		return
+	}
 	// installationToken := "your_installation_token"    // Replace with actual token
 	// owner := "your_repo_owner"                        // Replace with actual owner
 	// repo := "your_repo_name"                          // Replace with actual repo name

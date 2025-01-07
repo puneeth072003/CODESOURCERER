@@ -3,6 +3,7 @@ package finalizers
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -15,12 +16,19 @@ type TestsResponseFormat struct {
 	Code         string `json:"code"`
 }
 
-func Finalize(installationToken string, owner string, repo string, testFiles []TestsResponseFormat) error {
+func Finalize(installationToken string, owner string, repo string, testFilesJSON string) error {
+	// Step 1: Parse the JSON string into a slice of TestsResponseFormat
+	var testFiles []TestsResponseFormat
+	err := json.Unmarshal([]byte(testFilesJSON), &testFiles)
+	if err != nil {
+		log.Fatalf("Error parsing test files JSON: %v", err)
+		return err
+	}
 
-	// Get GitHub client
+	// Step 2: Get GitHub client
 	client, ctx := GetClient(installationToken)
 
-	// Generate a random branch name
+	// Step 3: Generate a random branch name
 	randomString, err := generateRandomString(5)
 	if err != nil {
 		log.Fatalf("Error generating random string: %v", err)
@@ -28,20 +36,23 @@ func Finalize(installationToken string, owner string, repo string, testFiles []T
 	}
 	newBranchName := "CS-sandbox-" + randomString
 
-	// Create a new branch
+	// Step 4: Create a new branch
 	err = CreateBranch(client, ctx, owner, repo, newBranchName)
 	if err != nil {
 		log.Fatalf("Error creating branch: %v", err)
 		return err
 	}
 
-	// Add the test files with content
+	// Step 5: Add the test files with content
 	for _, testFile := range testFiles {
+		// Decode the test file content (if necessary)
 		actualString, err := strconv.Unquote(`"` + testFile.Code + `"`)
 		if err != nil {
 			log.Fatalf("Error decoding string: %v", err)
 			return err
 		}
+
+		// Create the file in the repository
 		err = CreateFiles(client, ctx, owner, repo, newBranchName, testFile.TestFilePath, actualString)
 		if err != nil {
 			log.Fatalf("Error creating file %s: %v", testFile.TestFilePath, err)
@@ -49,7 +60,7 @@ func Finalize(installationToken string, owner string, repo string, testFiles []T
 		}
 	}
 
-	// Draft a pull request from the new branch
+	// Step 6: Draft a pull request from the new branch
 	prTitle := "chore: tests generated for the code added"          // hardcoded for now
 	baseBranch := "main"                                            // hardcoded for now
 	prBody := "This is a draft PR created from the sandbox branch." // hardcoded for now
