@@ -1,6 +1,8 @@
 package initializers
 
 import (
+	"log"
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -31,20 +33,30 @@ type ymlCaching struct {
 	RedisCaching string `yaml:"redis-caching"`
 }
 
-// FetchAndReturnYAMLContents fetches YAML contents and returns it as a structure
-func FetchAndReturnYAMLContents(owner, repo, commitSHA, filePath string) (YMLConfig, error) {
+const configFilePath = "codesourcerer-config.yml"
+
+var defaultConfig = YMLConfig{
+	Configuration: ymlConfiguration{TestDirectory: "/tests", Comments: "on", TestingBranch: "testing", TestingFramework: "pytest", WaterMark: "on"},
+	Environment:   ymlEnvironment{PythonVersion: "3.12"},
+	Caching:       ymlCaching{Enabled: false, RedisCaching: "off"},
+}
+
+// FetchConfig fetches Application Config contents and returns it as a structure
+func FetchConfig(owner, repo, commitSHA string) YMLConfig {
 	// Fetch the file content from GitHub
-	content, err := FetchFileContentFromGitHub(owner, repo, commitSHA, filePath)
+	content, err := FetchFileContentFromGitHub(owner, repo, commitSHA, configFilePath)
 	if err != nil {
-		return YMLConfig{}, err
+		log.Printf("unable to find config file. Using the Default Configuration. Error: %v", err)
+		return defaultConfig
 	}
 
 	// Parse YAML content
 	var config YMLConfig
 	err = yaml.Unmarshal([]byte(content), &config)
 	if err != nil {
-		return YMLConfig{}, err
+		log.Printf("Failed to parse yml file. Using the Default Configuration. Error: %v", err)
+		return defaultConfig
 	}
 
-	return config, nil
+	return config
 }

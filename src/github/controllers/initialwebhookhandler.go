@@ -138,10 +138,7 @@ func WebhookHandler(c *gin.Context) {
 
 	// yml content fetch
 	log.Printf("fetching content from yaml file of repository")
-	responseymldata, err := initializers.FetchAndReturnYAMLContents(repoOwner, repoName, commitSHA, "codesourcerer-config.yml")
-	if err != nil {
-		log.Fatalf("Error: %v", err)
-	}
+	responseymldata := initializers.FetchConfig(repoOwner, repoName, commitSHA)
 
 	// log the responseymldata
 	log.Printf("YAML Data Retrieved: %+v", responseymldata)
