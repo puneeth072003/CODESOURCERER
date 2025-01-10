@@ -19,13 +19,23 @@ message SourceFilePayload {
   repeated SourceFileDependencyPayload dependencies = 3;
 }
 
+message BasicConfig  {
+  string test_directory = 1;
+  bool comments = 2;
+  string testing_framework = 4;
+  bool water_mark = 5;
+}
+
+message Configuration {
+  BasicConfig configuration = 1;
+  map<string,string> extras = 2;
+}
+
 message GithubContextRequest {
   string merge_id = 1;
   string context = 2;
-  string framework = 3;
-  string test_directory = 4;
-  string comments = 5;
-  repeated SourceFilePayload files = 6;
+  Configuration config = 3;
+  repeated SourceFilePayload files = 4;
 }
 
 message TestFilePayload {

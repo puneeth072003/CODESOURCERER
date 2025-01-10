@@ -53,14 +53,15 @@ func SendPayload(url string, payload string) (map[string]interface{}, error) {
 	return responseBody, nil
 }
 
+// Remove this while cleaning
 func TestSendPayload(c *gin.Context) {
-
 	samplePayload := pb.GithubContextRequest{
-		MergeId:       "merge_uvw456rst789xyz123abc890klm567def234_107",
-		Context:       "This PR adds utility functions for date formatting and integrates these into a scheduling module.",
-		Framework:     "pytest",
-		TestDirectory: "tests/",
-		Comments:      "off",
+		MergeId: "merge_uvw456rst789xyz123abc890klm567def234_107",
+		Config: &pb.Configuration{
+			Configuration: &pb.BasicConfig{TestDirectory: "/tests", Comments: true, TestingFramework: "pytest", WaterMark: true},
+			Extras:        map[string]string{"indent-size": "6"},
+		},
+		Context: "This PR adds utility functions for date formatting and integrates these into a scheduling module.",
 		Files: []*pb.SourceFilePayload{
 			{
 				Path:         "date_utils.py",

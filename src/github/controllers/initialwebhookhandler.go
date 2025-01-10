@@ -138,10 +138,12 @@ func WebhookHandler(c *gin.Context) {
 
 	// yml content fetch
 	log.Printf("fetching content from yaml file of repository")
-	responseymldata := initializers.FetchConfig(repoOwner, repoName, commitSHA)
+	ymlConfig := initializers.FetchYmlConfig(repoOwner, repoName, commitSHA)
 
 	// log the responseymldata
-	log.Printf("YAML Data Retrieved: %+v", responseymldata)
+	log.Printf("YAML Data Retrieved: %+v", ymlConfig)
+
+	genConfig := initializers.GetGenerationOptions(ymlConfig)
 
 	// Fetch PR description and dependencies
 	prDescription, err := initializers.FetchPullRequestDescription(repoOwner, repoName, pullRequestNumber)
@@ -159,11 +161,9 @@ func WebhookHandler(c *gin.Context) {
 
 	// Initialize the responseData structure
 	payload := pb.GithubContextRequest{
-		MergeId:       mergeID,
-		Context:       context,
-		Framework:     responseymldata.Configuration.TestingFramework, // Hardcoded framework
-		TestDirectory: responseymldata.Configuration.TestDirectory,    // Hardcoded test directory
-		Comments:      responseymldata.Configuration.Comments,         // Hardcoded comments setting
+		MergeId: mergeID,
+		Context: context,
+		Config:  genConfig,
 	}
 
 	// Fetch files changed in the PR

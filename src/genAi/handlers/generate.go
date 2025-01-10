@@ -12,6 +12,7 @@ import (
 	"github.com/google/generative-ai-go/genai"
 )
 
+// TODO: Handle the Configuration Neatly
 func ProcessAI(ctx context.Context, payload *pb.GithubContextRequest, model *genai.GenerativeModel) (*pb.GeneratedTestsResponse, error) {
 	session := model.StartChat()
 	session.History = models.SessionHistory
