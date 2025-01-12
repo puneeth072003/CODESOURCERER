@@ -1,4 +1,4 @@
-module protobuf
+module github.com/codesourcerer-bot/proto
 
 go 1.22.3
 
