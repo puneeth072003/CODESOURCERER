@@ -30,7 +30,7 @@ var SessionHistory = []*genai.Content{
 	{
 		Role: "user",
 		Parts: []genai.Part{
-			genai.Text("please don't ue codeblocks for the output directly send the the json that is generated as string, basically don't use \"```` json ````\"notations"),
+			genai.Text("please don't use codeblocks for the output directly send the the json that is generated as string, basically don't use \"```` json ````\"notations"),
 		},
 	},
 	{
