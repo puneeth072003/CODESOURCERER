@@ -1,4 +1,4 @@
-module github
+module github.com/codesourcerer-bot/github
 
 go 1.23.1
 
@@ -9,10 +9,10 @@ require (
 	golang.org/x/oauth2 v0.24.0
 	gopkg.in/yaml.v3 v3.0.1
 	google.golang.org/grpc v1.69.2
-	protobuf v0.0.0
+	github.com/codesourcerer-bot/proto v0.0.0
 )
 
-replace protobuf => ../common
+replace github.com/codesourcerer-bot/proto => ../common
 
 require (
 	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect

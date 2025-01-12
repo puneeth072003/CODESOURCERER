@@ -1,14 +1,11 @@
-package services
+package handlers
 
 import (
 	"context"
-	"fmt"
-	"genAi/handlers"
-	"genAi/models"
-	"log"
-	"net"
-	pb "protobuf/generated"
 
+	pb "github.com/codesourcerer-bot/proto/generated"
+
+	"github.com/codesourcerer-bot/gen-ai/models"
 	"google.golang.org/grpc"
 )
 
@@ -21,7 +18,7 @@ func (s *server) GenerateTestFiles(_ context.Context, payload *pb.GithubContextR
 	ctx, client, model := models.InitializeModel()
 	defer client.Close()
 
-	res, err := handlers.ProcessAI(ctx, payload, model)
+	res, err := GetTestsFromAI(ctx, payload, model)
 	if err != nil {
 		return nil, err
 	}
@@ -29,21 +26,8 @@ func (s *server) GenerateTestFiles(_ context.Context, payload *pb.GithubContextR
 	return res, nil
 }
 
-func StartGrpcServer(addr string) {
-
+func GetGrpcServer() *grpc.Server {
 	grpcServer := grpc.NewServer()
-
 	pb.RegisterGenAiServiceServer(grpcServer, &server{})
-
-	lis, err := net.Listen("tcp", addr)
-	if err != nil {
-		log.Fatalf("Could not Listen at Port %s: %v", addr, err)
-	}
-
-	fmt.Println("gRPC Server started at PORT ", addr)
-
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("Unable to gRPC Server: %v", err)
-	}
-
+	return grpcServer
 }

@@ -1,4 +1,4 @@
-package tokenhandlers
+package token
 
 import (
 	"encoding/json"

@@ -2,8 +2,9 @@ package models
 
 import (
 	"context"
-	"genAi/utils"
 	"log"
+
+	"github.com/codesourcerer-bot/gen-ai/utils"
 
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"

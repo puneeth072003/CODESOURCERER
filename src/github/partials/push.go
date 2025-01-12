@@ -1,16 +1,17 @@
-package finalizers
+package partials
 
 import (
 	"fmt"
 	"log"
 	"net/http"
 
-	"github/controllers/tokenhandlers"
-	"github/utils"
-
+	"github.com/codesourcerer-bot/github/lib"
+	"github.com/codesourcerer-bot/github/lib/token"
+	"github.com/codesourcerer-bot/github/resolvers"
+	"github.com/codesourcerer-bot/github/utils"
 	"github.com/gin-gonic/gin"
 
-	pb "protobuf/generated"
+	pb "github.com/codesourcerer-bot/proto/generated"
 )
 
 func TestFinalize(c *gin.Context) {
@@ -32,11 +33,11 @@ func TestFinalize(c *gin.Context) {
 	apiEndpoint := fmt.Sprintf("https://api.github.com/app/installations/%s/access_tokens", installationID)
 
 	// Initialize the TokenManager
-	jwtToken := tokenhandlers.GetJWT()
-	tokenhandlers.NewTokenManager(apiEndpoint, jwtToken)
+	jwtToken := lib.GetJWT()
+	token.NewTokenManager(apiEndpoint, jwtToken)
 
 	// Get the token from the TokenManager
-	token, err := tokenhandlers.GetInstance().GetToken()
+	token, err := token.GetInstance().GetToken()
 	if err != nil {
 		log.Printf("Error getting token: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting token"})
@@ -65,7 +66,7 @@ func TestFinalize(c *gin.Context) {
 	}
 
 	// Call Finalize with the token and other parameters
-	err = Finalize(token, "puneeth072003", "testing-CS", generatedTestsResponse)
+	err = resolvers.PushNewBranchWithTests(token, "puneeth072003", "testing-CS", generatedTestsResponse)
 	if err != nil {
 		log.Printf("Error finalizing: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finalizing"})

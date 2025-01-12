@@ -1,12 +1,12 @@
-package tokenhandlers
+package lib
 
 import (
-	"github/utils"
 	"log"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/codesourcerer-bot/github/utils"
 	"github.com/golang-jwt/jwt/v4"
 )
 

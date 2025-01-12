@@ -1,13 +1,14 @@
-package initializers
+package gh
 
 import (
 	"encoding/json"
 	"fmt"
-	"github/utils"
 	"io"
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/codesourcerer-bot/github/utils"
 )
 
 // FetchPullRequestDescription fetches the description of a pull request

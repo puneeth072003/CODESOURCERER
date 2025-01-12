@@ -1,4 +1,4 @@
-package finalizers
+package gh
 
 import (
 	"context"
