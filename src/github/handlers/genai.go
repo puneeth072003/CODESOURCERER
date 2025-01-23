@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"context"
-	pb "protobuf/generated"
 	"time"
+
+	pb "github.com/codesourcerer-bot/proto/generated"
 )
 
 func GetGeneratedTestsFromGenAI(payload *pb.GithubContextRequest) (*pb.GeneratedTestsResponse, error) {
