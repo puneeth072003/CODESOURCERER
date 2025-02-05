@@ -39,7 +39,7 @@ func PullRequestHandler(c *gin.Context) error {
 	prDescription, err := gh.FetchPullRequestDescription(repoOwner, repoName, pullRequestNumber)
 	if err != nil {
 		log.Printf("Unable to fetch pull request description: %v", err)
-		return fmt.Errorf("Unable to fetch pull request description")
+		return fmt.Errorf("unable to fetch pull request description")
 	}
 
 	dependencies, context := utils.ParsePRDescription(prDescription)
@@ -47,7 +47,7 @@ func PullRequestHandler(c *gin.Context) error {
 	changedFiles, err := gh.FetchPullRequestFiles(repoOwner, repoName, pullRequestNumber)
 	if err != nil {
 		log.Printf("Unable to fetch changed files: %v", err)
-		return fmt.Errorf("Unable to fetch changed files")
+		return fmt.Errorf("unable to fetch changed files")
 	}
 
 	fileChan := resolvers.GetFileContents(changedFiles, repoOwner, repoName, commitSHA)
@@ -68,19 +68,19 @@ func PullRequestHandler(c *gin.Context) error {
 	generatedTests, err := handlers.GetGeneratedTestsFromGenAI(&payload)
 	if err != nil {
 		log.Printf("Error sending payload to GenAI Service: %v", err)
-		return fmt.Errorf("Error forwarding payload to GenAI Service")
+		return fmt.Errorf("error forwarding payload to GenAI Service")
 	}
 
 	token, err := token.GetInstance().GetToken()
 	if err != nil {
 		log.Printf("Error getting token: %v", err)
-		return fmt.Errorf("Error getting token")
+		return fmt.Errorf("error getting token")
 	}
 
 	err = resolvers.PushNewBranchWithTests(token, repoOwner, repoName, generatedTests)
 	if err != nil {
 		log.Printf("Error finalizing: %v", err)
-		return fmt.Errorf("Error finalizing")
+		return fmt.Errorf("error finalizing")
 	}
 
 	c.JSON(http.StatusAccepted, gin.H{"message": "Pull request has been raised"})

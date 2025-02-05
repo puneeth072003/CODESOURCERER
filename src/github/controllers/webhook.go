@@ -21,5 +21,4 @@ func WebhookController(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusNoContent)
-	return
 }
