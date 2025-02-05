@@ -26,8 +26,7 @@ func PullRequestHandler(c *gin.Context) error {
 
 	action, merged, baseBranch := prBody.GetPRStatus()
 
-	// TODO: Replace the condition later (replace hardcoded baseBranch Value)
-	if action != "closed" || !merged || baseBranch != "testing" {
+	if action != "closed" || !merged {
 		c.Status(http.StatusNoContent)
 		return nil
 	}
@@ -35,6 +34,11 @@ func PullRequestHandler(c *gin.Context) error {
 	pullRequestNumber, commitSHA := prBody.GetPRInfo()
 
 	ymlConfig := gh.FetchYmlConfig(repoOwner, repoName, commitSHA)
+
+	if baseBranch != ymlConfig.Configuration.TestingBranch {
+		c.Status(http.StatusNoContent)
+		return nil
+	}
 
 	prDescription, err := gh.FetchPullRequestDescription(repoOwner, repoName, pullRequestNumber)
 	if err != nil {
@@ -77,7 +81,7 @@ func PullRequestHandler(c *gin.Context) error {
 		return fmt.Errorf("Error getting token")
 	}
 
-	err = resolvers.PushNewBranchWithTests(token, repoOwner, repoName, generatedTests)
+	err = resolvers.PushNewBranchWithTests(token, repoOwner, repoName, ymlConfig.Configuration.TestingBranch, generatedTests)
 	if err != nil {
 		log.Printf("Error finalizing: %v", err)
 		return fmt.Errorf("Error finalizing")
