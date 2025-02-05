@@ -7,17 +7,9 @@ import (
 	"github.com/google/go-github/v52/github"
 )
 
-func CreateBranch(client *github.Client, ctx context.Context, owner, repo, newBranchName string) error {
-	// Get the default branch
-	repoInfo, _, err := client.Repositories.Get(ctx, owner, repo)
-	if err != nil {
-		return err
-	}
-
-	defaultBranch := repoInfo.GetDefaultBranch()
-
+func CreateBranch(client *github.Client, ctx context.Context, owner, repo, baseBranch, newBranchName string) error {
 	// Get the latest commit on the default branch
-	ref, _, err := client.Git.GetRef(ctx, owner, repo, "refs/heads/"+defaultBranch)
+	ref, _, err := client.Git.GetRef(ctx, owner, repo, "refs/heads/"+baseBranch)
 	if err != nil {
 		return err
 	}

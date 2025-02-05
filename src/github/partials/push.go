@@ -66,7 +66,7 @@ func TestFinalize(c *gin.Context) {
 	}
 
 	// Call Finalize with the token and other parameters
-	err = resolvers.PushNewBranchWithTests(token, "puneeth072003", "testing-CS", generatedTestsResponse)
+	err = resolvers.PushNewBranchWithTests(token, "puneeth072003", "testing-CS", "testing", generatedTestsResponse)
 	if err != nil {
 		log.Printf("Error finalizing: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finalizing"})

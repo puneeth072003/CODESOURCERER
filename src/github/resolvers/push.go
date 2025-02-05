@@ -19,27 +19,27 @@ func generateRandomString(length int) (string, error) {
 	return hex.EncodeToString(bytes), nil
 }
 
-func PushNewBranchWithTests(installationToken string, owner string, repo string, tests *pb.GeneratedTestsResponse) error {
+func PushNewBranchWithTests(installationToken string, owner string, repo string, baseBranch string, tests *pb.GeneratedTestsResponse) error {
 
-	// Step 2: Get GitHub client
+	// Step 1: Get GitHub client
 	client, ctx := gh.GetClient(installationToken)
 
-	// Step 3: Generate a random branch name
+	// Step 2: Generate a random branch name
 	randomString, err := generateRandomString(5)
 	if err != nil {
 		log.Fatalf("Error generating random string: %v", err)
 		return err
 	}
-	newBranchName := "CS-sandbox-" + randomString
+	newBranchName := "tests/CS-sandbox-" + randomString
 
-	// Step 4: Create a new branch
-	err = gh.CreateBranch(client, ctx, owner, repo, newBranchName)
+	// Step 3: Create a new branch
+	err = gh.CreateBranch(client, ctx, owner, repo, baseBranch, newBranchName)
 	if err != nil {
 		log.Fatalf("Error creating branch: %v", err)
 		return err
 	}
 
-	// Step 5: Add the test files with content
+	// Step 4: Add the test files with content
 	for _, testFile := range tests.Tests {
 		// Directly use the test file content without unquoting
 		err = gh.CreateFiles(client, ctx, owner, repo, newBranchName, testFile.Testfilepath, testFile.Code)
@@ -49,11 +49,17 @@ func PushNewBranchWithTests(installationToken string, owner string, repo string,
 		}
 	}
 
-	// Step 6: Create a pull request from the new branch
+	repoInfo, _, err := client.Repositories.Get(ctx, owner, repo)
+	if err != nil {
+		return err
+	}
+
+	defaultBranch := repoInfo.GetDefaultBranch()
+
+	// Step 5: Create a pull request from the new branch
 	prTitle := "chore: tests generated for the code added"          // hardcoded for now
-	baseBranch := "main"                                            // hardcoded for now
 	prBody := "This is a draft PR created from the sandbox branch." // hardcoded for now
-	err = gh.CreatePR(client, ctx, owner, repo, prTitle, newBranchName, baseBranch, prBody)
+	err = gh.CreatePR(client, ctx, owner, repo, prTitle, newBranchName, defaultBranch, prBody)
 	if err != nil {
 		log.Fatalf("Error creating draft PR: %v", err)
 		return err
