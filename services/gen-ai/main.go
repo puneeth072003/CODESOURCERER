@@ -10,7 +10,7 @@ import (
 
 func main() {
 
-	addr := ":9001"
+	addr := "127.0.0.1:9001"
 
 	grpcServer := handlers.GetGrpcServer()
 
