@@ -3,13 +3,13 @@ module github.com/codesourcerer-bot/gen-ai
 go 1.23.1
 
 require (
+	github.com/codesourcerer-bot/proto v0.0.0
 	github.com/google/generative-ai-go v0.19.0
 	google.golang.org/api v0.216.0
 	google.golang.org/grpc v1.69.2
-	github.com/codesourcerer-bot/proto v0.0.0
 )
 
-replace github.com/codesourcerer-bot/proto => ../common
+replace github.com/codesourcerer-bot/proto => ../../proto
 
 require (
 	cloud.google.com/go v0.118.0 // indirect

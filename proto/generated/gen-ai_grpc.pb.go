@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GenAiService_GenerateTestFiles_FullMethodName = "/codesourcerer.genai.GenAiService/GenerateTestFiles"
+	GenAiService_GenerateTestFiles_FullMethodName = "/codesourcerer_bot.genai.GenAiService/GenerateTestFiles"
 )
 
 // GenAiServiceClient is the client API for GenAiService service.
@@ -108,7 +108,7 @@ func _GenAiService_GenerateTestFiles_Handler(srv interface{}, ctx context.Contex
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var GenAiService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "codesourcerer.genai.GenAiService",
+	ServiceName: "codesourcerer_bot.genai.GenAiService",
 	HandlerType: (*GenAiServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

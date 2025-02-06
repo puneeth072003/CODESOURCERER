@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package codesourcerer.genai;
+package codesourcerer_bot.genai;
 
-option go_package = "protobuf/generated";
+option go_package = "github.com/codesourcerer-bot/proto/generated";
 
 service GenAiService {
   rpc GenerateTestFiles(GithubContextRequest) returns (GeneratedTestsResponse) {}

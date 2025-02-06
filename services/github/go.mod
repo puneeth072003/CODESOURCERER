@@ -12,7 +12,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
-replace github.com/codesourcerer-bot/proto => ../common
+replace github.com/codesourcerer-bot/proto => ../../proto
 
 require (
 	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
