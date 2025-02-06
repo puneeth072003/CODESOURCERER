@@ -8,3 +8,4 @@ tmp/
 data/
 *.hcl
 *.json
+go.work.sum
