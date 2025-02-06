@@ -1,7 +1,7 @@
 #!/bin/bash
 
-PROTO_DIR=./common/protobuf
-GENERATED_DIR=./common/generated
+PROTO_DIR=./proto/protobuf
+GENERATED_DIR=./proto/generated
 
 mkdir -p $GENERATED_DIR
 

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/codesourcerer-bot/github/controllers"
 	"github.com/codesourcerer-bot/github/lib/token"
 	"github.com/codesourcerer-bot/github/partials"
@@ -20,5 +22,7 @@ func main() {
 	router.GET("/testsend", partials.TestSendPayload) // test route for payload generation
 	router.GET("/testfinalizer", partials.TestFinalize)
 
-	router.Run(":3000")
+	if err := router.Run(":3000"); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }

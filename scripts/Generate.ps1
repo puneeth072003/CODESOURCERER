@@ -1,5 +1,5 @@
-$PROTO_DIR = "common\protobuf"
-$GENERATED_DIR = "common\generated"
+$PROTO_DIR = "proto\protobuf"
+$GENERATED_DIR = "proto\generated"
 
 New-Item -ItemType Directory -Force -Path $GENERATED_DIR > $null 2>&1
 
