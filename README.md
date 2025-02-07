@@ -16,7 +16,7 @@
   </picture>
 
 <br>
-  <!-- <h3 align="center">CODESOURCERER-bot</h3> -->
+  <h3 align="center">CODESOURCERER-bot</h3>
 
   <p align="center">
     AI-powered tool for automated test generation in CI pipeline
