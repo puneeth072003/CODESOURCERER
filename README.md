@@ -107,39 +107,73 @@ This section lists the major frameworks and libraries used to bootstrap this too
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
+Follow these steps to set up the development environment for **CODESOURCERER**.
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
+Ensure you have the following installed:
+
+- **Go** (latest version)  
+- **Air** (for hot-reloading)  
+- **Ngrok** (for tunneling local services)  
+
+### Setup Instructions
+
+#### 1. Fork and Clone the Repository  
+Fork the repository and then clone your forked version:  
+   ```sh
+   git clone https://github.com/puneeth072003/CODESOURCERER.git
   ```
+Change into the project directory:
 
-### Installation
+```sh
+cd CODESOURCERER
+```
+#### 2. Sync Dependencies
+Run the following in the project root to set up Go modules:
 
-_Below is an example of how you can instruct your audience on installing and setting up your app. This template doesn't rely on any external dependencies or services._
+```sh
+go work sync
+```
+#### 3. Install Dependencies for Individual Services
+Navigate to the respective service directories and install dependencies:
 
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
-   ```sh
-   git clone https://github.com/github_username/repo_name.git
-   ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
-5. Change git remote url to avoid accidental pushes to base project
-   ```sh
-   git remote set-url origin github_username/repo_name
-   git remote -v # confirm the changes
-   ```
+```sh
+cd services/gen-ai
+go mod tidy
+cd services/github
+go mod tidy
+```
+#### 4. Configure Environment Variables
+Each service requires an `.env` file. Use the example .env files provided in the respective directories to configure your environment.
+
+#### 5. Install and Run Air for Hot Reloading
+```sh
+cd services/gen-ai
+air
+```
+Open a new terminal and run the GitHub service:
+
+```sh
+cd services/github
+air
+```
+#### 6. Setup Ngrok for Local Webhook Development
+Expose port 3000 using Ngrok:
+
+```sh
+ngrok http 3000
+```
+*Note: Copy the generated Ngrok URL.*
+
+#### 7. Configure GitHub App for Local Development
+For development purposes, we recommend creating your own GitHub App with all necessary permissions. Update the webhook callback URL in this format:
+
+```bash
+<ngrok-url>/webhook
+```
+Now your development environment is set up and ready to go! 🚀
+
 
 <p align="right"><a href="#readme-top">back to top »</a></p>
 
@@ -148,9 +182,10 @@ _Below is an example of how you can instruct your audience on installing and set
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+We are currently working on comprehensive documentation covering various use cases. Stay tuned for updates!  
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+In the meantime, feel free to explore the project and check back soon for detailed usage examples.
+
 
 <p align="right"><a href="#readme-top">back to top »</a></p>
 
@@ -159,15 +194,9 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- ROADMAP -->
 ## Roadmap
 
-- [x] Add Changelog
-- [x] Add back to top links
-- [ ] Add Additional Templates w/ Examples
-- [ ] Add "components" document to easily copy & paste sections of the readme
-- [ ] Multi-language Support
-    - [ ] Chinese
-    - [ ] Spanish
+For the latest progress and advancements of the project, check out the [Project Board](https://github.com/users/puneeth072003/projects/3).  
 
-See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/puneeth072003/CODESOURCERER/issues) for a full list of proposed features and known issues.
 
 <p align="right"><a href="#readme-top">back to top »</a></p>
 
@@ -176,21 +205,22 @@ See the [open issues](https://github.com/othneildrew/Best-README-Template/issues
 <!-- CONTRIBUTING -->
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions help improve this project and make it more robust. Any contributions you make are **greatly appreciated**.
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
+If you have a suggestion to enhance the project, feel free to fork the repository and open a pull request. You can also create an issue with the tag `"enhancement"`. Don't forget to give the project a ⭐!  
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+### Contribution Workflow  
+
+1. **Fork the repository**  
+2. **Create a new branch** (`git checkout -b feature/<feature_name>`)
+3. **Commit your Changes** (`git commit -m 'feat <issue_no>: breif description of commit`)
+4. **Push to the Branch** (`git push origin feature/<feature_name>`)
+5. **Open a Pull Request**
 
 ### Top contributors:
 
-<a href="https://github.com/othneildrew/Best-README-Template/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=othneildrew/Best-README-Template" alt="contrib.rocks image" />
+<a href="https://github.com/puneeth072003/CODESOURCERER/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=puneeth072003/CODESOURCERER" alt="contrib.rocks image" />
 </a>
 
 <p align="right"><a href="#readme-top">back to top »</a></p>
@@ -200,7 +230,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the Unlicense License. See `LICENSE.txt` for more information.
+Distributed under the MIT License. See [`LICENSE.txt`](LICENSE.txt) for more information.
 
 <p align="right"><a href="#readme-top">back to top »</a></p>
 
@@ -209,9 +239,9 @@ Distributed under the Unlicense License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@your_twitter](https://twitter.com/your_username) - email@example.com
-
-Project Link: [https://github.com/your_username/repo_name](https://github.com/your_username/repo_name)
+- Dev team:  codesourcerer.org@gmail.com
+- Youtube Link: [@Codesourcerer-bot](https://www.youtube.com/channel/UCas0TjQ_Hueh8DACnGhPcEQ)
+- Project Link: [https://github.com/puneeth072003/CODESOURCERER](https://github.com/puneeth072003/CODESOURCERER)
 
 <p align="right"><a href="#readme-top">back to top »</a></p>
 
@@ -220,16 +250,27 @@ Project Link: [https://github.com/your_username/repo_name](https://github.com/yo
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
+This section lists research papers that have contributed to this project.
 
-* [Choose an Open Source License](https://choosealicense.com)
-* [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
-* [Malven's Flexbox Cheatsheet](https://flexbox.malven.co/)
-* [Malven's Grid Cheatsheet](https://grid.malven.co/)
-* [Img Shields](https://shields.io)
-* [GitHub Pages](https://pages.github.com)
-* [Font Awesome](https://fontawesome.com)
-* [React Icons](https://react-icons.github.io/react-icons/search)
+* [1] Boyang Du, Sarah Azimi, Annarita Moramarco, Davide Sabena, Filippo Parisi, and Luca Sterpone,  
+   *"An Automated Continuous Integration Multitest Platform for Automotive Systems"*,  
+   IEEE International Conference on Design, Automation & Test in Europe (DATE), 2021.  
+   [Link](https://ieeexplore.ieee.org/document/9425022/)
+
+* [2] N. Tillmann and W. Schulte,  
+   *"Parameterized Unit Tests"*, IEEE Transactions on Software Engineering, 2010.  
+   [Link](https://dl.acm.org/doi/10.1145/1081706.1081749)
+
+* [3] G. Fraser and A. Arcuri,  
+   *"EvoSuite: Automatic Test Suite Generation for Object-Oriented Software"*,  
+   ACM Transactions on Software Engineering and Methodology (TOSEM), 2014.  
+   [Link](https://dl.acm.org/doi/10.1145/2642937)
+
+* [4] M. Grechanik, Q. Xie, and C. Fu,  
+   *"Automatically Finding Performance Problems with Feedback-Directed Learning Software Testing"*,  
+   IEEE International Conference on Software Engineering, 2012.  
+   [Link](https://ieeexplore.ieee.org/document/6222590)
+
 
 <p align="right"><a href="#readme-top">back to top »</a></p>
 
