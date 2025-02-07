@@ -63,14 +63,27 @@
 
 ## About The Project
 
-Put video here
+*Put video here*
 
 
 Our tool seamlessly integrates with GitHub to automate test generation for code changes. It detects modifications in your repository, sends requests to a proxy server, and interacts with a Generative AI API to generate relevant tests. These tests are automatically added alongside the developer’s changes and merged into the main branch.
 
-For a detailed workflow explanation, see below.
+*For a detailed workflow explanation, see below.*
 
-### Typical workflow 
+### Workflow
+
+<img src="./docs/assets/workflow.png" alt="description" align="center"/>
+
+</br>
+The above image illustrates the working of CODESOURCERER in a GitHub-based development pipeline
+
+#### Glossary
+- **designated testing branch**: A branch solely designated for our tool. It is the root branch from which changes are detected and tests are generated.
+- **proxy server**: Built using a microservices architecture, it is responsible for hosting all business logic.
+- **github app**: Acts as a middleman authorized in your repository to view code changes and raise PRs.
+
+  ***Note:** A PR is raised from a sandbox branch following the naming convention `CS-Sandbox-<hash>`.*
+
 
 <p align="right"><a href="#readme-top">back to top »</a></p>
 
@@ -78,16 +91,14 @@ For a detailed workflow explanation, see below.
 
 ### Built With
 
-This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
+This section lists the major frameworks and libraries used to bootstrap this tool.
 
-* [![Next][Next.js]][Next-url]
-* [![React][React.js]][React-url]
-* [![Vue][Vue.js]][Vue-url]
-* [![Angular][Angular.io]][Angular-url]
-* [![Svelte][Svelte.dev]][Svelte-url]
-* [![Laravel][Laravel.com]][Laravel-url]
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![JQuery][JQuery.com]][JQuery-url]
+* ![Go](https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white)  
+* ![gRPC](https://img.shields.io/badge/gRPC-4285F4?style=for-the-badge&logo=google&logoColor=white)  
+* ![Gemini Flash 2.0](https://img.shields.io/badge/Gemini_Flash_2.0-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)  
+* ![Webflow](https://img.shields.io/badge/Webflow-4353FF?style=for-the-badge&logo=webflow&logoColor=white)  
+* ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)  
+
 
 <p align="right"><a href="#readme-top">back to top »</a></p>
 
