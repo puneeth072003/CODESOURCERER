@@ -1,13 +1,13 @@
 <!-- Badges -->
 [![Last Commit][last-commit-shield]][last-commit-url]
-[![Total Commits][total-commits-shield]][total-commits-url]
 [![Issues][issues-shield]][issues-url]
-[![Pull Requests][pull-requests-shield]][pull-requests-url]
 [![License][license-shield]][license-url]
 [![Top Language][top-language-shield]][top-language-url]
 <!-- [![Contributors][contributors-shield]][contributors-url] -->
 <!-- [![Forks][forks-shield]][forks-url] -->
 <!-- [![Stargazers][stars-shield]][stars-url] -->
+<!-- [![Total Commits][total-commits-shield]][total-commits-url] -->
+<!-- [![Pull Requests][pull-requests-shield]][pull-requests-url] -->
 
 <div align="center">
   <picture>
