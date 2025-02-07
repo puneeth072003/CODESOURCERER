@@ -89,10 +89,6 @@ The above image illustrates the working of CODESOURCERER in a GitHub-based devel
   ***Note:** A PR is raised from a sandbox branch following the naming convention `CS-Sandbox-<hash>`.*
 
 
-<p align="right"><a href="#readme-top">back to top »</a></p>
-
-
-
 ### Built With
 
 This section lists the major frameworks and libraries used to bootstrap this tool.
@@ -102,10 +98,6 @@ This section lists the major frameworks and libraries used to bootstrap this too
 * ![Gemini Flash 2.0](https://img.shields.io/badge/Gemini_Flash_2.0-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white)  
 * ![Webflow](https://img.shields.io/badge/Webflow-4353FF?style=for-the-badge&logo=webflow&logoColor=white)  
 * ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)  
-
-
-<p align="right"><a href="#readme-top">back to top »</a></p>
-
 
 
 <!-- GETTING STARTED -->
@@ -179,10 +171,6 @@ For development purposes, we recommend creating your own GitHub App with all nec
 Now your development environment is set up and ready to go! 🚀
 
 
-<p align="right"><a href="#readme-top">back to top »</a></p>
-
-
-
 <!-- USAGE EXAMPLES -->
 ## Usage
 
@@ -190,20 +178,12 @@ We are currently working on comprehensive documentation covering various use cas
 
 In the meantime, feel free to explore the project and check back soon for detailed usage examples.
 
-
-<p align="right"><a href="#readme-top">back to top »</a></p>
-
-
-
 <!-- ROADMAP -->
 ## Roadmap
 
 For the latest progress and advancements of the project, check out the [Project Board](https://github.com/users/puneeth072003/projects/3).  
 
 See the [open issues](https://github.com/puneeth072003/CODESOURCERER/issues) for a full list of proposed features and known issues.
-
-<p align="right"><a href="#readme-top">back to top »</a></p>
-
 
 
 <!-- CONTRIBUTING -->
@@ -227,17 +207,12 @@ If you have a suggestion to enhance the project, feel free to fork the repositor
   <img src="https://contrib.rocks/image?repo=puneeth072003/CODESOURCERER" alt="contrib.rocks image" />
 </a>
 
-<p align="right"><a href="#readme-top">back to top »</a></p>
-
 
 
 <!-- LICENSE -->
 ## License
 
 Distributed under the MIT License. See [`LICENSE.txt`](LICENSE.txt) for more information.
-
-<p align="right"><a href="#readme-top">back to top »</a></p>
-
 
 
 <!-- CONTACT -->
@@ -246,9 +221,6 @@ Distributed under the MIT License. See [`LICENSE.txt`](LICENSE.txt) for more inf
 - Dev team:  codesourcerer.org@gmail.com
 - Youtube Link: [@Codesourcerer-bot](https://www.youtube.com/channel/UCas0TjQ_Hueh8DACnGhPcEQ)
 - Project Link: [https://github.com/puneeth072003/CODESOURCERER](https://github.com/puneeth072003/CODESOURCERER)
-
-<p align="right"><a href="#readme-top">back to top »</a></p>
-
 
 
 <!-- ACKNOWLEDGMENTS -->
@@ -274,13 +246,6 @@ This section lists research papers that have contributed to this project.
    *"Automatically Finding Performance Problems with Feedback-Directed Learning Software Testing"*,  
    IEEE International Conference on Software Engineering, 2012.  
    [Link](https://ieeexplore.ieee.org/document/6222590)
-
-
-<p align="right"><a href="#readme-top">back to top »</a></p>
-
-
-
-
 
 
 <!-- Badge References -->
