@@ -4,19 +4,10 @@ package codesourcerer_bot.genai;
 
 option go_package = "github.com/codesourcerer-bot/proto/generated";
 
+import "shared.proto";
+
 service GenAiService {
   rpc GenerateTestFiles(GithubContextRequest) returns (GeneratedTestsResponse) {}
-}
-
-message SourceFileDependencyPayload {
-  string name = 1;
-  string content = 2;
-}
-
-message SourceFilePayload {
-  string path = 1;
-  string content = 2;
-  repeated SourceFileDependencyPayload dependencies = 3;
 }
 
 message BasicConfig  {
@@ -35,16 +26,9 @@ message GithubContextRequest {
   string merge_id = 1;
   string context = 2;
   Configuration config = 3;
-  repeated SourceFilePayload files = 4;
-}
-
-message TestFilePayload {
-  string testname = 1;
-  string testfilepath = 2;
-  string parentpath = 3;
-  string code = 4;
+  repeated codesourcerer_bot.shared.SourceFilePayload files = 4;
 }
 
 message GeneratedTestsResponse {
-  repeated TestFilePayload tests = 1;
+  repeated codesourcerer_bot.shared.TestFilePayload tests = 1;
 }

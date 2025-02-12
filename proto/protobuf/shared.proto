@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package codesourcerer_bot.shared;
+
+option go_package = "github.com/codesourcerer-bot/proto/generated";
+
+message SourceFileDependencyPayload {
+  string name = 1;
+  string content = 2;
+}
+
+message SourceFilePayload {
+  string path = 1;
+  string content = 2;
+  repeated SourceFileDependencyPayload dependencies = 3;
+}
+
+message TestFilePayload {
+  string testname = 1;
+  string testfilepath = 2;
+  string parentpath = 3;
+  string code = 4;
+}
