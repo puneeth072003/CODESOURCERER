@@ -3,19 +3,16 @@ package token
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/codesourcerer-bot/github/lib"
-	"github.com/codesourcerer-bot/github/utils"
 )
 
 func InitTokenManager() {
-	envs, err := utils.Loadenv(".env")
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-	installationID, exists := envs["INSTALLATION_ID"]
-	if !exists {
-		log.Fatalf("Error loading .env file: %v", err)
+
+	installationID := os.Getenv("INSTALLATION_ID")
+	if installationID == "" {
+		log.Fatalf("no installation id found")
 	}
 	apiEndpoint := fmt.Sprintf("https://api.github.com/app/installations/%s/access_tokens", installationID)
 

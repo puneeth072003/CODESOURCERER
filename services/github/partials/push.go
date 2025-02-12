@@ -4,28 +4,21 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/codesourcerer-bot/github/lib"
 	"github.com/codesourcerer-bot/github/lib/token"
 	"github.com/codesourcerer-bot/github/resolvers"
-	"github.com/codesourcerer-bot/github/utils"
 	"github.com/gin-gonic/gin"
 
 	pb "github.com/codesourcerer-bot/proto/generated"
 )
 
 func TestFinalize(c *gin.Context) {
-	// Load environment variables
-	envs, err := utils.Loadenv(".env")
-	if err != nil {
-		log.Printf("Error loading .env file: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error loading environment variables"})
-		return
-	}
 
 	// Access the necessary environment variables
-	installationID, exists := envs["INSTALLATION_ID"]
-	if !exists {
+	installationID := os.Getenv("INSTALLATION_ID")
+	if installationID == "" {
 		log.Printf("INSTALLATION_ID not found in .env file")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "INSTALLATION_ID not found in environment variables"})
 		return

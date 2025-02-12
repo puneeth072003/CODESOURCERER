@@ -13,21 +13,21 @@ type server struct {
 	pb.UnimplementedGenAiServiceServer
 }
 
+func GetGrpcServer() *grpc.Server {
+	grpcServer := grpc.NewServer()
+	pb.RegisterGenAiServiceServer(grpcServer, &server{})
+	return grpcServer
+}
+
 func (s *server) GenerateTestFiles(_ context.Context, payload *pb.GithubContextRequest) (*pb.GeneratedTestsResponse, error) {
 
 	ctx, client, model := models.InitializeModel()
 	defer client.Close()
 
-	res, err := GetTestsFromAI(ctx, payload, model)
+	res, err := getTestsFromAI(ctx, payload, model)
 	if err != nil {
 		return nil, err
 	}
 
 	return res, nil
-}
-
-func GetGrpcServer() *grpc.Server {
-	grpcServer := grpc.NewServer()
-	pb.RegisterGenAiServiceServer(grpcServer, &server{})
-	return grpcServer
 }

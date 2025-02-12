@@ -3,23 +3,19 @@ package main
 import (
 	"fmt"
 	"log"
-	"net"
 
 	"github.com/codesourcerer-bot/gen-ai/handlers"
+	"github.com/codesourcerer-bot/gen-ai/utils"
 )
 
 func main() {
 
-	addr := "127.0.0.1:9001"
+	utils.LoadEnv()
+	lis, port := utils.GetListener()
 
 	grpcServer := handlers.GetGrpcServer()
 
-	lis, err := net.Listen("tcp", addr)
-	if err != nil {
-		log.Fatalf("Could not Listen at Port %s: %v", addr, err)
-	}
-
-	fmt.Println("gRPC Server started at PORT ", addr)
+	fmt.Println("GenAI gRPC Server started at PORT ", port)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("Unable to gRPC Server: %v", err)
