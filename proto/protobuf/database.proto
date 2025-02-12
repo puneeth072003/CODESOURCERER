@@ -23,7 +23,7 @@ message KeyValType {
 
 message ValueType {
   repeated codesourcerer_bot.shared.SourceFilePayload contexts = 1;
-  repeated codesourcerer_bot.shared.SourceFilePayload tests = 2;
+  repeated codesourcerer_bot.shared.TestFilePayload tests = 2;
 
 }
 

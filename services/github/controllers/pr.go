@@ -7,7 +7,7 @@ import (
 
 	pb "github.com/codesourcerer-bot/proto/generated"
 
-	"github.com/codesourcerer-bot/github/handlers"
+	"github.com/codesourcerer-bot/github/connections"
 	"github.com/codesourcerer-bot/github/lib/gh"
 	"github.com/codesourcerer-bot/github/lib/token"
 	"github.com/codesourcerer-bot/github/resolvers"
@@ -69,7 +69,7 @@ func PullRequestHandler(c *gin.Context) error {
 		payload.Files = append(payload.Files, f)
 	}
 
-	generatedTests, err := handlers.GetGeneratedTestsFromGenAI(&payload)
+	generatedTests, err := connections.GetGeneratedTestsFromGenAI(&payload)
 	if err != nil {
 		log.Printf("Error sending payload to GenAI Service: %v", err)
 		return fmt.Errorf("error forwarding payload to GenAI Service")

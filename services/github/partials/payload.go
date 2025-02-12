@@ -9,8 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/codesourcerer-bot/github/handlers"
-
+	"github.com/codesourcerer-bot/github/connections"
 	pb "github.com/codesourcerer-bot/proto/generated"
 
 	"github.com/gin-gonic/gin"
@@ -82,7 +81,7 @@ func TestSendPayload(c *gin.Context) {
 		},
 	}
 
-	response, err := handlers.GetGeneratedTestsFromGenAI(&samplePayload)
+	response, err := connections.GetGeneratedTestsFromGenAI(&samplePayload)
 	if err != nil {
 		log.Printf("Error in SendPayload: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
