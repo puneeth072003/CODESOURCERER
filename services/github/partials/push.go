@@ -9,6 +9,7 @@ import (
 	"github.com/codesourcerer-bot/github/lib"
 	"github.com/codesourcerer-bot/github/lib/token"
 	"github.com/codesourcerer-bot/github/resolvers"
+	"github.com/codesourcerer-bot/github/utils"
 	"github.com/gin-gonic/gin"
 
 	pb "github.com/codesourcerer-bot/proto/generated"
@@ -58,8 +59,10 @@ func TestFinalize(c *gin.Context) {
 		Tests: testFiles,
 	}
 
+	newBranch := utils.GetRandomBranch()
+
 	// Call Finalize with the token and other parameters
-	err = resolvers.PushNewBranchWithTests(token, "puneeth072003", "testing-CS", "testing", generatedTestsResponse)
+	err = resolvers.PushNewBranchWithTests(token, "puneeth072003", "testing-CS", "testing", newBranch, "DISABLED", generatedTestsResponse)
 	if err != nil {
 		log.Printf("Error finalizing: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finalizing"})

@@ -81,7 +81,11 @@ func PullRequestHandler(c *gin.Context) error {
 		return fmt.Errorf("error getting token")
 	}
 
-	err = resolvers.PushNewBranchWithTests(token, repoOwner, repoName, ymlConfig.Configuration.TestingBranch, generatedTests)
+	newBranch := utils.GetRandomBranch()
+
+	cacheResult := resolvers.CachePullRequest(ymlConfig.Caching.Enabled, repoOwner, repoName, newBranch, payload.GetFiles(), generatedTests.GetTests())
+
+	err = resolvers.PushNewBranchWithTests(token, repoOwner, repoName, ymlConfig.Configuration.TestingBranch, newBranch, cacheResult, generatedTests)
 	if err != nil {
 		log.Printf("Error finalizing: %v", err)
 		return fmt.Errorf("error finalizing")
