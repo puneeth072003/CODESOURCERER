@@ -1,23 +1,31 @@
 package utils
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
-	"time"
+	"log"
 )
 
 const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-func generateRandomString(length int) string {
-	rand.NewSource(time.Now().UnixNano())
+func generateRandomString(length int) (string, error) {
 	bytes := make([]byte, length)
-	for i := range bytes {
-		bytes[i] = charset[rand.Intn(len(charset))]
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
 	}
-	return string(bytes)
+
+	for i := range bytes {
+		bytes[i] = charset[int(bytes[i])%len(charset)]
+	}
+
+	return string(bytes), nil
 }
 
 func GetRandomBranch() string {
-	randomString := generateRandomString(5)
+	randomString, err := generateRandomString(5)
+	if err != nil {
+		log.Fatalf("unable to generate random string: %v", err)
+	}
 	return fmt.Sprintf("tests/CS-sandbox-%s", randomString)
 }
