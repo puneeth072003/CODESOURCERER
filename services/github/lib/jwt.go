@@ -6,23 +6,17 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/codesourcerer-bot/github/utils"
 	"github.com/golang-jwt/jwt/v4"
 )
 
 func GetJWT() string {
-	//load envs
-	envs, err := utils.Loadenv(".env")
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+	privKeyPath := os.Getenv("PRIVATE_KEY_PATH")
+	if privKeyPath == "" {
+		log.Fatalf("private key path not found")
 	}
-	privKeyPath, exists := envs["PRIVATE_KEY_PATH"]
-	if !exists {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-	appID, exists := envs["APP_ID"]
-	if !exists {
-		log.Fatalf("Error loading .env file: %v", err)
+	appID := os.Getenv("APP_ID")
+	if appID == "" {
+		log.Fatalf("app id not found")
 	}
 
 	// generate JWT

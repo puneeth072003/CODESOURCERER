@@ -15,7 +15,7 @@ import (
 )
 
 // TODO: Handle the Configuration Neatly
-func GetTestsFromAI(ctx context.Context, payload *pb.GithubContextRequest, model *genai.GenerativeModel) (*pb.GeneratedTestsResponse, error) {
+func getTestsFromAI(ctx context.Context, payload *pb.GithubContextRequest, model *genai.GenerativeModel) (*pb.GeneratedTestsResponse, error) {
 	session := model.StartChat()
 	session.History = models.SessionHistory
 

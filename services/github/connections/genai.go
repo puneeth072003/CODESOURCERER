@@ -1,4 +1,4 @@
-package handlers
+package connections
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 )
 
 func GetGeneratedTestsFromGenAI(payload *pb.GithubContextRequest) (*pb.GeneratedTestsResponse, error) {
-	conn, err := getConnection(":9001")
+	conn, err := getGrpcConnection(":9001")
 	if err != nil {
 		return nil, err
 	}

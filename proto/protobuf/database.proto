@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package codesourcerer_bot.database;
+
+option go_package = "github.com/codesourcerer-bot/proto/generated";
+
+import "shared.proto";
+
+service DatabaseService {
+  rpc Set(KeyValType) returns (ResultType) {}
+  rpc Get(KeyType) returns (ValueType) {}
+  rpc Delete(KeyType) returns (ResultType) {}
+}
+
+message KeyType {
+  string key = 1;
+}
+
+message KeyValType {
+  string key = 1;
+  ValueType value = 2;
+}
+
+message ValueType {
+  repeated codesourcerer_bot.shared.SourceFilePayload contexts = 1;
+  repeated codesourcerer_bot.shared.TestFilePayload tests = 2;
+
+}
+
+message ResultType {
+  bool result = 1;
+}
+

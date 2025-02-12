@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/codesourcerer-bot/github/lib"
 	"github.com/codesourcerer-bot/github/lib/token"
@@ -15,17 +16,10 @@ import (
 )
 
 func TestFinalize(c *gin.Context) {
-	// Load environment variables
-	envs, err := utils.Loadenv(".env")
-	if err != nil {
-		log.Printf("Error loading .env file: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error loading environment variables"})
-		return
-	}
 
 	// Access the necessary environment variables
-	installationID, exists := envs["INSTALLATION_ID"]
-	if !exists {
+	installationID := os.Getenv("INSTALLATION_ID")
+	if installationID == "" {
 		log.Printf("INSTALLATION_ID not found in .env file")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "INSTALLATION_ID not found in environment variables"})
 		return
@@ -65,8 +59,10 @@ func TestFinalize(c *gin.Context) {
 		Tests: testFiles,
 	}
 
+	newBranch := utils.GetRandomBranch()
+
 	// Call Finalize with the token and other parameters
-	err = resolvers.PushNewBranchWithTests(token, "puneeth072003", "testing-CS", "testing", generatedTestsResponse)
+	err = resolvers.PushNewBranchWithTests(token, "puneeth072003", "testing-CS", "testing", newBranch, "DISABLED", generatedTestsResponse)
 	if err != nil {
 		log.Printf("Error finalizing: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finalizing"})

@@ -3,8 +3,7 @@ package models
 import (
 	"context"
 	"log"
-
-	"github.com/codesourcerer-bot/gen-ai/utils"
+	"os"
 
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
@@ -12,12 +11,7 @@ import (
 
 func InitializeModel() (context.Context, *genai.Client, *genai.GenerativeModel) {
 
-	envs, err := utils.Loadenv(".env")
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-
-	apiKey := envs["GEMINI_API_KEY"]
+	apiKey := os.Getenv("GEMINI_API_KEY")
 
 	ctx := context.Background()
 	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
