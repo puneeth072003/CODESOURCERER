@@ -10,6 +10,7 @@ service DatabaseService {
   rpc Set(KeyValType) returns (ResultType) {}
   rpc Get(KeyType) returns (ValueType) {}
   rpc Delete(KeyType) returns (ResultType) {}
+  rpc IsRetriesExhauted(KeyType) returns (ResultType) {}
 }
 
 message KeyType {

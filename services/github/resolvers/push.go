@@ -37,26 +37,16 @@ func PushNewBranchWithTests(installationToken, owner, repo, baseBranch, newBranc
 
 	defaultBranch := repoInfo.GetDefaultBranch()
 
-	prTitle := "chore: tests generated for the code added" // hardcoded for now
-	var prBody string
+	prTitle := "chore: tests generated for the code added"                // hardcoded for now
+	prBody := "### This is a draft PR created from the sandbox branch.\n" // hardcoded for now
 
 	switch cacheResult {
-	case "DISABLED":
-		prBody = "### This is a draft PR created from the sandbox branch." // hardcoded for now
 
 	case "DONE":
-		prBody = fmt.Sprintf(`
-		### This is a draft PR created from the sandbox branch.
-		
-		> This PR has been cached!
-		`)
+		prBody += "> This PR has been cached!"
 
 	case "ERROR":
-		prBody = fmt.Sprintf(`
-		### This is a draft PR created from the sandbox branch.
-		
-		> This PR could not be cached!
-		`)
+		prBody = "> This PR could not be cached!"
 	}
 
 	err = gh.CreatePR(client, ctx, owner, repo, prTitle, newBranch, defaultBranch, prBody)
