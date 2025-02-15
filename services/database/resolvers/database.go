@@ -1,7 +1,6 @@
 package resolvers
 
 import (
-	"fmt"
 	"os"
 )
 
@@ -13,19 +12,7 @@ type Database interface {
 
 func Factory() (Database, error) {
 
-	// Maybe ill remove this once i know the Valkey URL
-	databaseType := os.Getenv("DATABASE_TYPE")
 	databaseUrl := os.Getenv("DATABASE_URL")
+	return createRedisDatabase(databaseUrl)
 
-	switch databaseType {
-	case "redis":
-		return createRedisDatabase(databaseUrl)
-
-	case "valkey":
-		return createValkeyDatabase(databaseUrl)
-
-	default:
-		return nil, fmt.Errorf("Database not implemented")
-
-	}
 }

@@ -31,3 +31,7 @@ func (s *server) Get(_ context.Context, payload *pb.KeyType) (*pb.ValueType, err
 func (s *server) Delete(_ context.Context, payload *pb.KeyType) (*pb.ResultType, error) {
 	return deleteContextAndTests(s.db, payload.Key)
 }
+
+func (s *server) IsRetriesExhauted(_ context.Context, payload *pb.KeyType) (*pb.ResultType, error) {
+	return isRetriesExhauted(s.db, payload.Key)
+}

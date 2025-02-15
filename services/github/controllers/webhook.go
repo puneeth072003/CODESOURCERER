@@ -9,14 +9,26 @@ import (
 func WebhookController(ctx *gin.Context) {
 
 	event := ctx.GetHeader("X-GitHub-Event")
+
 	var err error
-	if event == "pull_request" {
-		if err = PullRequestHandler(ctx); err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
+	switch event {
+	case "pull_request":
+		if err = PullRequestHandler(ctx); err == nil {
+			return
 		}
-		return
+
+	case "workflow_run":
+		if err = WorkflowHandler(ctx); err == nil {
+			return
+		}
 	}
-	// TODO: Handle Action Workflow
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+
+	}
 
 	ctx.Status(http.StatusNoContent)
 }

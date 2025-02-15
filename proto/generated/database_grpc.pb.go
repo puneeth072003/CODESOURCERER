@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	DatabaseService_Set_FullMethodName    = "/codesourcerer_bot.database.DatabaseService/Set"
-	DatabaseService_Get_FullMethodName    = "/codesourcerer_bot.database.DatabaseService/Get"
-	DatabaseService_Delete_FullMethodName = "/codesourcerer_bot.database.DatabaseService/Delete"
+	DatabaseService_Set_FullMethodName               = "/codesourcerer_bot.database.DatabaseService/Set"
+	DatabaseService_Get_FullMethodName               = "/codesourcerer_bot.database.DatabaseService/Get"
+	DatabaseService_Delete_FullMethodName            = "/codesourcerer_bot.database.DatabaseService/Delete"
+	DatabaseService_IsRetriesExhauted_FullMethodName = "/codesourcerer_bot.database.DatabaseService/IsRetriesExhauted"
 )
 
 // DatabaseServiceClient is the client API for DatabaseService service.
@@ -31,6 +32,7 @@ type DatabaseServiceClient interface {
 	Set(ctx context.Context, in *KeyValType, opts ...grpc.CallOption) (*ResultType, error)
 	Get(ctx context.Context, in *KeyType, opts ...grpc.CallOption) (*ValueType, error)
 	Delete(ctx context.Context, in *KeyType, opts ...grpc.CallOption) (*ResultType, error)
+	IsRetriesExhauted(ctx context.Context, in *KeyType, opts ...grpc.CallOption) (*ResultType, error)
 }
 
 type databaseServiceClient struct {
@@ -71,6 +73,16 @@ func (c *databaseServiceClient) Delete(ctx context.Context, in *KeyType, opts ..
 	return out, nil
 }
 
+func (c *databaseServiceClient) IsRetriesExhauted(ctx context.Context, in *KeyType, opts ...grpc.CallOption) (*ResultType, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ResultType)
+	err := c.cc.Invoke(ctx, DatabaseService_IsRetriesExhauted_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DatabaseServiceServer is the server API for DatabaseService service.
 // All implementations must embed UnimplementedDatabaseServiceServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type DatabaseServiceServer interface {
 	Set(context.Context, *KeyValType) (*ResultType, error)
 	Get(context.Context, *KeyType) (*ValueType, error)
 	Delete(context.Context, *KeyType) (*ResultType, error)
+	IsRetriesExhauted(context.Context, *KeyType) (*ResultType, error)
 	mustEmbedUnimplementedDatabaseServiceServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedDatabaseServiceServer) Get(context.Context, *KeyType) (*Value
 }
 func (UnimplementedDatabaseServiceServer) Delete(context.Context, *KeyType) (*ResultType, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedDatabaseServiceServer) IsRetriesExhauted(context.Context, *KeyType) (*ResultType, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsRetriesExhauted not implemented")
 }
 func (UnimplementedDatabaseServiceServer) mustEmbedUnimplementedDatabaseServiceServer() {}
 func (UnimplementedDatabaseServiceServer) testEmbeddedByValue()                         {}
@@ -172,6 +188,24 @@ func _DatabaseService_Delete_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DatabaseService_IsRetriesExhauted_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(KeyType)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DatabaseServiceServer).IsRetriesExhauted(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DatabaseService_IsRetriesExhauted_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DatabaseServiceServer).IsRetriesExhauted(ctx, req.(*KeyType))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DatabaseService_ServiceDesc is the grpc.ServiceDesc for DatabaseService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var DatabaseService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _DatabaseService_Delete_Handler,
+		},
+		{
+			MethodName: "IsRetriesExhauted",
+			Handler:    _DatabaseService_IsRetriesExhauted_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
