@@ -80,11 +80,6 @@ func WorkflowHandler(ctx *gin.Context) error {
 		return fmt.Errorf("unable to update cache")
 	}
 
-	if err != nil {
-		log.Printf("Error getting token: %v", err)
-		return fmt.Errorf("error getting token")
-	}
-
 	if err = resolvers.CommitRetriedTests(owner, repoName, branchName, generatedTests); err != nil {
 		log.Printf("unable to commit test files: %v", err)
 		return fmt.Errorf("unable to commit test files")
