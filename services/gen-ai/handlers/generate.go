@@ -7,17 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/codesourcerer-bot/gen-ai/contexts"
 	pb "github.com/codesourcerer-bot/proto/generated"
-
-	"github.com/codesourcerer-bot/gen-ai/models"
-
 	"github.com/google/generative-ai-go/genai"
 )
 
 // TODO: Handle the Configuration Neatly
 func getTestsFromAI(ctx context.Context, payload *pb.GithubContextRequest, model *genai.GenerativeModel) (*pb.GeneratedTestsResponse, error) {
 	session := model.StartChat()
-	session.History = models.SessionHistory
+	session.History = contexts.GeneratorModelContext
 
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
