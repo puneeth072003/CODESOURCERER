@@ -22,8 +22,8 @@ func InitTokenManager() {
 	// Demo fetch of token
 	token, err := GetInstance().GetToken()
 	if err != nil {
-		fmt.Println("Error:", err)
+		log.Println("Error:", err)
 		return
 	}
-	fmt.Println("Fetched Token:", token)
+	log.Println("Fetched Token:", token)
 }

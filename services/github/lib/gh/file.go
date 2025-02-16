@@ -6,17 +6,21 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/google/go-github/v52/github"
 )
 
 func CreateFiles(client *github.Client, ctx context.Context, owner, repo, branch, filePath, content string) error {
+
+	botEmail := os.Getenv("BOT_EMAIL")
+
 	path, _ := strings.CutPrefix(filePath, "/")
 	_, _, err := client.Repositories.CreateFile(ctx, owner, repo, path, &github.RepositoryContentFileOptions{ // Use & here
 		Committer: &github.CommitAuthor{
 			Name:  github.String("codesourcerer-bot"),
-			Email: github.String("codesourcerer.org@gmail.com"),
+			Email: github.String(botEmail),
 		},
 		Message: github.String("Adding new file " + filePath),
 		Content: []byte(content),
@@ -26,7 +30,7 @@ func CreateFiles(client *github.Client, ctx context.Context, owner, repo, branch
 		return err
 	}
 
-	fmt.Println("File created:", filePath)
+	log.Println("File created:", filePath)
 	return nil
 }
 
