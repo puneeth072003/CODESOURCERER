@@ -33,7 +33,11 @@ func WorkflowHandler(ctx *gin.Context) error {
 	cacheKey := fmt.Sprintf("%s/%s/tree/%s", owner, repoName, branchName)
 
 	if result == "success" {
-		connections.DeleteContextAndTestsToDatabase(cacheKey)
+		if ok, err := connections.DeleteContextAndTestsToDatabase(cacheKey); err != nil || !ok {
+			log.Printf("unable to delete cache: %v", err)
+			ctx.JSON(http.StatusAccepted, gin.H{"error": "unable to delete cach"})
+			return nil
+		}
 		ctx.JSON(http.StatusAccepted, gin.H{"message": "cache has been cleared due to workflow success"})
 		return nil
 	}
