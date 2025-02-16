@@ -12,12 +12,13 @@ import (
 	"github.com/codesourcerer-bot/github/lib/token"
 	"github.com/codesourcerer-bot/github/resolvers"
 	"github.com/codesourcerer-bot/github/utils"
+	"github.com/codesourcerer-bot/github/validators"
 	"github.com/gin-gonic/gin"
 )
 
 func PullRequestHandler(c *gin.Context) error {
 
-	prBody, err := resolvers.NewPrBody(c.Request.Body)
+	prBody, err := validators.NewPrBody(c.Request.Body)
 	if err != nil {
 		return err
 	}

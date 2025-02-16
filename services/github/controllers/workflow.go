@@ -2,43 +2,90 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
-	"strings"
 
+	"github.com/codesourcerer-bot/github/connections"
+	"github.com/codesourcerer-bot/github/lib/token"
 	"github.com/codesourcerer-bot/github/resolvers"
+	"github.com/codesourcerer-bot/github/validators"
+	pb "github.com/codesourcerer-bot/proto/generated"
 	"github.com/gin-gonic/gin"
 )
 
 func WorkflowHandler(ctx *gin.Context) error {
 
-	workflowBody, err := resolvers.NewWorkflowBody(ctx.Request.Body)
+	workflowBody, err := validators.NewWorkflowBody(ctx.Request.Body)
 	if err != nil {
 		return err
 	}
 
 	name, status, result := workflowBody.GetWorkflowDetails()
 
-	if name != "Run Tests in Directory" || status != "completed" || result != "failure" {
+	if name != "Run Tests in Directory" || status != "completed" || result == "" {
 		ctx.Status(http.StatusNoContent)
 		return nil
 	}
 
-	owner, repoName := workflowBody.GetRepoDetails()
+	owner, repoName, branchName := workflowBody.GetRepoDetails()
 	jobUrl := workflowBody.GetWorkflowJobUrl()
+
+	cacheKey := fmt.Sprintf("%s/%s/tree/%s", owner, repoName, branchName)
+
+	if result == "success" {
+		connections.DeleteContextAndTestsToDatabase(cacheKey)
+		ctx.JSON(http.StatusAccepted, gin.H{"message": "cache has been cleared due to workflow success"})
+		return nil
+	}
+
+	if result != "failure" {
+		ctx.Status(http.StatusNoContent)
+		return nil
+	}
+
+	if isRetryExhausted, err := connections.GetRetryExhaustionStatus(cacheKey); err != nil {
+		return fmt.Errorf("unable to fetch retry count: %v", isRetryExhausted)
+	} else if isRetryExhausted {
+		ctx.JSON(http.StatusTooManyRequests, gin.H{"error": "retry has been exhausted"})
+		return nil
+	}
 
 	logs, err := resolvers.FetchLogs(jobUrl, owner, repoName)
 	if err != nil {
 		return err
 	}
 
-	parsedLogs := ""
-	for _, log := range strings.Split(logs, "\n") {
-		if len(log) > 29 {
-			parsedLogs = parsedLogs + log[29:] + "\n"
-		}
+	cache, err := connections.GetContextAndTestsFromDatabase(cacheKey)
+	if err != nil {
+		return err
 	}
 
-	fmt.Printf("%s", parsedLogs)
+	payload := &pb.RetryMechanismPayload{
+		Cache: cache,
+		Logs:  logs,
+	}
+
+	generatedTests, err := connections.GetRetriedTestsFromGenAI(payload)
+	if err != nil {
+		log.Printf("Error from GenAI Service: %v", err)
+		return fmt.Errorf("error forwarding payload to GenAI Service")
+	}
+
+	if ok, err := connections.SetContextAndTestsToDatabase(cacheKey, cache.GetContexts(), generatedTests.GetTests()); err != nil || !ok {
+		log.Printf("unable to update cache: %v", err)
+		return fmt.Errorf("unable to update cache")
+	}
+
+	token, err := token.GetInstance().GetToken()
+	if err != nil {
+		log.Printf("Error getting token: %v", err)
+		return fmt.Errorf("error getting token")
+	}
+
+	if err = resolvers.CommitRetriedTests(token, owner, repoName, branchName, generatedTests); err != nil {
+		log.Printf("unable to commit test files: %v", err)
+		return fmt.Errorf("unable to commit test files")
+	}
 
 	return nil
 }
