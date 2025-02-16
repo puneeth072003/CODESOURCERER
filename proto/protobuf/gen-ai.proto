@@ -8,13 +8,14 @@ import "shared.proto";
 
 service GenAiService {
   rpc GenerateTestFiles(GithubContextRequest) returns (GeneratedTestsResponse) {}
+  rpc GenerateRetriedTestFiles(RetryMechanismPayload) returns (GeneratedTestsResponse) {}
 }
 
 message BasicConfig  {
   string test_directory = 1;
   bool comments = 2;
-  string testing_framework = 4;
-  bool water_mark = 5;
+  string testing_framework = 3;
+  bool water_mark = 4;
 }
 
 message Configuration {
@@ -31,4 +32,10 @@ message GithubContextRequest {
 
 message GeneratedTestsResponse {
   repeated codesourcerer_bot.shared.TestFilePayload tests = 1;
+}
+
+
+message RetryMechanismPayload {
+  codesourcerer_bot.shared.CachedContents cache = 1;
+  repeated string logs = 2;
 }
