@@ -9,7 +9,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-func InitializeModel() (context.Context, *genai.Client, *genai.GenerativeModel) {
+func InitializeGeneratorModel() (context.Context, *genai.Client, *genai.GenerativeModel) {
 
 	apiKey := os.Getenv("GEMINI_API_KEY")
 
