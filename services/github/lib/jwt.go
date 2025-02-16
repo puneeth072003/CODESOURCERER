@@ -9,7 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-func GetJWT() string {
+func getJWT() string {
 	privKeyPath := os.Getenv("PRIVATE_KEY_PATH")
 	if privKeyPath == "" {
 		log.Fatalf("private key path not found")
@@ -20,14 +20,14 @@ func GetJWT() string {
 	}
 
 	// generate JWT
-	token, err := GenerateJWT(appID, string(privKeyPath))
+	token, err := generateJWT(appID, string(privKeyPath))
 	if err != nil {
 		log.Fatalf("Error generating JWT: %v", err)
 	}
 	return token
 }
 
-func GenerateJWT(appID string, privkeyPath string) (string, error) {
+func generateJWT(appID string, privkeyPath string) (string, error) {
 	privkeyBytes, err := os.ReadFile(filepath.Clean(privkeyPath))
 	if err != nil {
 		return "", err
