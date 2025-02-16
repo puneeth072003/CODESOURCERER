@@ -12,20 +12,14 @@ import (
 	"github.com/google/generative-ai-go/genai"
 )
 
-// TODO: Handle the Configuration Neatly
-func getTestsFromAI(ctx context.Context, payload *pb.GithubContextRequest, model *genai.GenerativeModel) (*pb.GeneratedTestsResponse, error) {
+func generateRetriedTestsFromAI(ctx context.Context, parsedLogs genai.Part, cache *pb.CachedContents, model *genai.GenerativeModel) (*pb.GeneratedTestsResponse, error) {
 	session := model.StartChat()
-	session.History = contexts.GeneratorModelContext
-
-	payloadBytes, err := json.Marshal(payload)
-	if err != nil {
-		return nil, fmt.Errorf("error serializing payload: %v", err)
-	}
+	session.History = contexts.GetRegeratorContext(cache)
 
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
-	response, err := session.SendMessage(ctx, genai.Text(string(payloadBytes)))
+	response, err := session.SendMessage(ctx, parsedLogs)
 	if err != nil {
 		return nil, fmt.Errorf("error generating response: %v", err)
 	}

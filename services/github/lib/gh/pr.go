@@ -2,7 +2,7 @@ package gh
 
 import (
 	"context"
-	"fmt"
+	"log"
 
 	"github.com/google/go-github/v52/github"
 )
@@ -21,6 +21,6 @@ func CreatePR(client *github.Client, ctx context.Context, owner, repo, title, he
 		return err
 	}
 
-	fmt.Println("Pull Request created:", title)
+	log.Println("Pull Request created:", title)
 	return nil
 }

@@ -1,4 +1,4 @@
-package resolvers
+package validators
 
 import (
 	"encoding/json"
@@ -43,9 +43,10 @@ func (wf *workflowEventBody) GetWorkflowJobUrl() string {
 	return url
 }
 
-func (wf *workflowEventBody) GetRepoDetails() (string, string) {
+func (wf *workflowEventBody) GetRepoDetails() (string, string, string) {
 	owner := (*wf)["workflow_run"].(map[string]interface{})["repository"].(map[string]interface{})["owner"].(map[string]interface{})["login"].(string)
 	repoName := (*wf)["workflow_run"].(map[string]interface{})["repository"].(map[string]interface{})["name"].(string)
+	branchName := (*wf)["workflow_run"].(map[string]interface{})["head_branch"].(string)
 
-	return owner, repoName
+	return owner, repoName, branchName
 }

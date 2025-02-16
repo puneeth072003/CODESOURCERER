@@ -1,8 +1,8 @@
-package models
+package contexts
 
 import "github.com/google/generative-ai-go/genai"
 
-var SessionHistory = []*genai.Content{
+var GeneratorModelContext = []*genai.Content{
 	{
 		Role: "user",
 		Parts: []genai.Part{

@@ -21,3 +21,9 @@ message TestFilePayload {
   string parentpath = 3;
   string code = 4;
 }
+
+message CachedContents {
+  repeated codesourcerer_bot.shared.SourceFilePayload contexts = 1;
+  repeated codesourcerer_bot.shared.TestFilePayload tests = 2;
+
+}

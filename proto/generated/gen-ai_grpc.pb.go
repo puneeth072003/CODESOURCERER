@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GenAiService_GenerateTestFiles_FullMethodName = "/codesourcerer_bot.genai.GenAiService/GenerateTestFiles"
+	GenAiService_GenerateTestFiles_FullMethodName        = "/codesourcerer_bot.genai.GenAiService/GenerateTestFiles"
+	GenAiService_GenerateRetriedTestFiles_FullMethodName = "/codesourcerer_bot.genai.GenAiService/GenerateRetriedTestFiles"
 )
 
 // GenAiServiceClient is the client API for GenAiService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GenAiServiceClient interface {
 	GenerateTestFiles(ctx context.Context, in *GithubContextRequest, opts ...grpc.CallOption) (*GeneratedTestsResponse, error)
+	GenerateRetriedTestFiles(ctx context.Context, in *RetryMechanismPayload, opts ...grpc.CallOption) (*GeneratedTestsResponse, error)
 }
 
 type genAiServiceClient struct {
@@ -47,11 +49,22 @@ func (c *genAiServiceClient) GenerateTestFiles(ctx context.Context, in *GithubCo
 	return out, nil
 }
 
+func (c *genAiServiceClient) GenerateRetriedTestFiles(ctx context.Context, in *RetryMechanismPayload, opts ...grpc.CallOption) (*GeneratedTestsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GeneratedTestsResponse)
+	err := c.cc.Invoke(ctx, GenAiService_GenerateRetriedTestFiles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GenAiServiceServer is the server API for GenAiService service.
 // All implementations must embed UnimplementedGenAiServiceServer
 // for forward compatibility.
 type GenAiServiceServer interface {
 	GenerateTestFiles(context.Context, *GithubContextRequest) (*GeneratedTestsResponse, error)
+	GenerateRetriedTestFiles(context.Context, *RetryMechanismPayload) (*GeneratedTestsResponse, error)
 	mustEmbedUnimplementedGenAiServiceServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedGenAiServiceServer struct{}
 
 func (UnimplementedGenAiServiceServer) GenerateTestFiles(context.Context, *GithubContextRequest) (*GeneratedTestsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GenerateTestFiles not implemented")
+}
+func (UnimplementedGenAiServiceServer) GenerateRetriedTestFiles(context.Context, *RetryMechanismPayload) (*GeneratedTestsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateRetriedTestFiles not implemented")
 }
 func (UnimplementedGenAiServiceServer) mustEmbedUnimplementedGenAiServiceServer() {}
 func (UnimplementedGenAiServiceServer) testEmbeddedByValue()                      {}
@@ -104,6 +120,24 @@ func _GenAiService_GenerateTestFiles_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GenAiService_GenerateRetriedTestFiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RetryMechanismPayload)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GenAiServiceServer).GenerateRetriedTestFiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GenAiService_GenerateRetriedTestFiles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GenAiServiceServer).GenerateRetriedTestFiles(ctx, req.(*RetryMechanismPayload))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GenAiService_ServiceDesc is the grpc.ServiceDesc for GenAiService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var GenAiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GenerateTestFiles",
 			Handler:    _GenAiService_GenerateTestFiles_Handler,
+		},
+		{
+			MethodName: "GenerateRetriedTestFiles",
+			Handler:    _GenAiService_GenerateRetriedTestFiles_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

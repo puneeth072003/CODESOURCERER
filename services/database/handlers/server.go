@@ -24,7 +24,7 @@ func (s *server) Set(_ context.Context, payload *pb.KeyValType) (*pb.ResultType,
 	return setContextAndTests(s.db, payload.Key, payload.GetValue())
 }
 
-func (s *server) Get(_ context.Context, payload *pb.KeyType) (*pb.ValueType, error) {
+func (s *server) Get(_ context.Context, payload *pb.KeyType) (*pb.CachedContents, error) {
 	return getContextAndTests(s.db, payload.Key)
 }
 

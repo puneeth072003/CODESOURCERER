@@ -2,7 +2,7 @@ package gh
 
 import (
 	"context"
-	"fmt"
+	"log"
 
 	"github.com/google/go-github/v52/github"
 )
@@ -28,6 +28,6 @@ func CreateBranch(client *github.Client, ctx context.Context, owner, repo, baseB
 		return err
 	}
 
-	fmt.Println("Created new branch:", newBranchName)
+	log.Println("Created new branch:", newBranchName)
 	return nil
 }

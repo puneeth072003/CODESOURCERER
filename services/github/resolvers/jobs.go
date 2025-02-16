@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/codesourcerer-bot/github/lib/token"
 )
@@ -52,18 +53,27 @@ func getJobID(jobUrl string) (int, error) {
 	return result.Jobs[0].ID, nil
 }
 
-func FetchLogs(jobUrl, owner, repo string) (string, error) {
+func FetchLogs(jobUrl, owner, repo string) ([]string, error) {
 
 	jobId, err := getJobID(jobUrl)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/actions/jobs/%d/logs", owner, repo, jobId)
 	body, err := makeGitHubRequest(url)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return string(body), nil
+	logs := string(body)
+
+	parsedLogs := make([]string, 1)
+	for _, log := range strings.Split(logs, "\n") {
+		if len(log) > 29 {
+			parsedLogs = append(parsedLogs, log[29:]+"\n")
+		}
+	}
+
+	return parsedLogs, nil
 }

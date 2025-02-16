@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/codesourcerer-bot/gen-ai/handlers"
@@ -15,7 +14,7 @@ func main() {
 
 	grpcServer := handlers.GetGrpcServer()
 
-	fmt.Println("GenAI gRPC Server started at PORT ", port)
+	log.Println("GenAI gRPC Server started at PORT ", port)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("Unable to gRPC Server: %v", err)
