@@ -8,7 +8,7 @@ import "shared.proto";
 
 service DatabaseService {
   rpc Set(KeyValType) returns (ResultType) {}
-  rpc Get(KeyType) returns (ValueType) {}
+  rpc Get(KeyType) returns (codesourcerer_bot.shared.CachedContents) {}
   rpc Delete(KeyType) returns (ResultType) {}
   rpc IsRetriesExhauted(KeyType) returns (ResultType) {}
 }
@@ -19,13 +19,7 @@ message KeyType {
 
 message KeyValType {
   string key = 1;
-  ValueType value = 2;
-}
-
-message ValueType {
-  repeated codesourcerer_bot.shared.SourceFilePayload contexts = 1;
-  repeated codesourcerer_bot.shared.TestFilePayload tests = 2;
-
+  codesourcerer_bot.shared.CachedContents value = 2;
 }
 
 message ResultType {
