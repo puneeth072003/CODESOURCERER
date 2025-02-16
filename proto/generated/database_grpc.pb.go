@@ -30,7 +30,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DatabaseServiceClient interface {
 	Set(ctx context.Context, in *KeyValType, opts ...grpc.CallOption) (*ResultType, error)
-	Get(ctx context.Context, in *KeyType, opts ...grpc.CallOption) (*ValueType, error)
+	Get(ctx context.Context, in *KeyType, opts ...grpc.CallOption) (*CachedContents, error)
 	Delete(ctx context.Context, in *KeyType, opts ...grpc.CallOption) (*ResultType, error)
 	IsRetriesExhauted(ctx context.Context, in *KeyType, opts ...grpc.CallOption) (*ResultType, error)
 }
@@ -53,9 +53,9 @@ func (c *databaseServiceClient) Set(ctx context.Context, in *KeyValType, opts ..
 	return out, nil
 }
 
-func (c *databaseServiceClient) Get(ctx context.Context, in *KeyType, opts ...grpc.CallOption) (*ValueType, error) {
+func (c *databaseServiceClient) Get(ctx context.Context, in *KeyType, opts ...grpc.CallOption) (*CachedContents, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ValueType)
+	out := new(CachedContents)
 	err := c.cc.Invoke(ctx, DatabaseService_Get_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func (c *databaseServiceClient) IsRetriesExhauted(ctx context.Context, in *KeyTy
 // for forward compatibility.
 type DatabaseServiceServer interface {
 	Set(context.Context, *KeyValType) (*ResultType, error)
-	Get(context.Context, *KeyType) (*ValueType, error)
+	Get(context.Context, *KeyType) (*CachedContents, error)
 	Delete(context.Context, *KeyType) (*ResultType, error)
 	IsRetriesExhauted(context.Context, *KeyType) (*ResultType, error)
 	mustEmbedUnimplementedDatabaseServiceServer()
@@ -104,7 +104,7 @@ type UnimplementedDatabaseServiceServer struct{}
 func (UnimplementedDatabaseServiceServer) Set(context.Context, *KeyValType) (*ResultType, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
 }
-func (UnimplementedDatabaseServiceServer) Get(context.Context, *KeyType) (*ValueType, error) {
+func (UnimplementedDatabaseServiceServer) Get(context.Context, *KeyType) (*CachedContents, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
 }
 func (UnimplementedDatabaseServiceServer) Delete(context.Context, *KeyType) (*ResultType, error) {
