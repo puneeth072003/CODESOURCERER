@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/codesourcerer-bot/github/controllers"
-	"github.com/codesourcerer-bot/github/lib/token"
 	"github.com/codesourcerer-bot/github/partials"
 	"github.com/codesourcerer-bot/github/utils"
 
@@ -15,9 +14,6 @@ func main() {
 
 	utils.LoadEnv()
 	port := utils.GetPort()
-
-	// Initialize the token manager
-	token.InitTokenManager()
 
 	router := gin.Default()
 

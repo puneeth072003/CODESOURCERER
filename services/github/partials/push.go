@@ -1,13 +1,10 @@
 package partials
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/codesourcerer-bot/github/lib"
-	"github.com/codesourcerer-bot/github/lib/token"
 	"github.com/codesourcerer-bot/github/resolvers"
 	"github.com/codesourcerer-bot/github/utils"
 	"github.com/gin-gonic/gin"
@@ -22,19 +19,6 @@ func TestFinalize(c *gin.Context) {
 	if installationID == "" {
 		log.Printf("INSTALLATION_ID not found in .env file")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "INSTALLATION_ID not found in environment variables"})
-		return
-	}
-	apiEndpoint := fmt.Sprintf("https://api.github.com/app/installations/%s/access_tokens", installationID)
-
-	// Initialize the TokenManager
-	jwtToken := lib.GetJWT()
-	token.NewTokenManager(apiEndpoint, jwtToken)
-
-	// Get the token from the TokenManager
-	token, err := token.GetInstance().GetToken()
-	if err != nil {
-		log.Printf("Error getting token: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting token"})
 		return
 	}
 
@@ -62,7 +46,7 @@ func TestFinalize(c *gin.Context) {
 	newBranch := utils.GetRandomBranch()
 
 	// Call Finalize with the token and other parameters
-	err = resolvers.PushNewBranchWithTests(token, "puneeth072003", "testing-CS", "testing", newBranch, "DISABLED", generatedTestsResponse)
+	err := resolvers.PushNewBranchWithTests("puneeth072003", "testing-CS", "testing", newBranch, "DISABLED", generatedTestsResponse)
 	if err != nil {
 		log.Printf("Error finalizing: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finalizing"})
