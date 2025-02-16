@@ -1,4 +1,4 @@
-package gh
+package lib
 
 import (
 	"encoding/json"
@@ -24,7 +24,7 @@ func FetchPullRequestDescription(owner, repo string, prNumber int) (string, erro
 	}
 
 	req, _ := http.NewRequest("GET", reqUrl, nil)
-	req.Header.Set("Accept", "application/vnd.github.v3+json")
+	configureJsonHeaders(req)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

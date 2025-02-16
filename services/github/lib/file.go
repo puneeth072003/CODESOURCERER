@@ -1,4 +1,4 @@
-package gh
+package lib
 
 import (
 	"context"
@@ -35,10 +35,11 @@ func CreateFiles(client *github.Client, ctx context.Context, owner, repo, branch
 }
 
 func FetchFileFromGitHub(owner, repo, commitSHA, filePath string) (string, error) {
+
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/contents/%s?ref=%s", owner, repo, filePath, commitSHA)
 
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("Accept", "application/vnd.github.v3.raw")
+	configureRawHeaders(req)
 
 	// creates a pointer to new http client instance (struct)
 	client := &http.Client{}

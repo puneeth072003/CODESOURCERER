@@ -1,4 +1,4 @@
-package resolvers
+package lib
 
 import (
 	"encoding/json"
@@ -6,17 +6,12 @@ import (
 	"io"
 	"net/http"
 	"strings"
-
-	"github.com/codesourcerer-bot/github/lib/token"
 )
 
-func makeGitHubRequest(url string) ([]byte, error) {
-	token, err := token.GetInstance().GetToken()
+func makeGitHubRequest(url, token string) ([]byte, error) {
 
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Accept", "application/vnd.github+json")
-	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+	configureJsonHeadersWithAuth(req, token)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -32,9 +27,9 @@ func makeGitHubRequest(url string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-func getJobID(jobUrl string) (int, error) {
+func getJobID(jobUrl, token string) (int, error) {
 
-	body, err := makeGitHubRequest(jobUrl)
+	body, err := makeGitHubRequest(jobUrl, token)
 	if err != nil {
 		return 0, err
 	}
@@ -55,13 +50,18 @@ func getJobID(jobUrl string) (int, error) {
 
 func FetchLogs(jobUrl, owner, repo string) ([]string, error) {
 
-	jobId, err := getJobID(jobUrl)
+	token, err := getRefreshToken()
+	if err != nil {
+		return nil, err
+	}
+
+	jobId, err := getJobID(jobUrl, token)
 	if err != nil {
 		return nil, err
 	}
 
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/actions/jobs/%d/logs", owner, repo, jobId)
-	body, err := makeGitHubRequest(url)
+	body, err := makeGitHubRequest(url, token)
 	if err != nil {
 		return nil, err
 	}

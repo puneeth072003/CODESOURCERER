@@ -1,4 +1,4 @@
-package gh
+package lib
 
 import (
 	"context"
