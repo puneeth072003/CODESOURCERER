@@ -9,7 +9,7 @@ import (
 	pb "github.com/codesourcerer-bot/proto/generated"
 )
 
-func getContextAndTests(db resolvers.Database, key string) (*pb.ValueType, error) {
+func getContextAndTests(db resolvers.Database, key string) (*pb.CachedContents, error) {
 
 	val, err := db.Get(key)
 	if err != nil {
@@ -33,7 +33,7 @@ func getContextAndTests(db resolvers.Database, key string) (*pb.ValueType, error
 		return nil, err
 	}
 
-	var value pb.ValueType
+	var value pb.CachedContents
 
 	if err = json.Unmarshal([]byte(val), &value); err != nil {
 		return nil, fmt.Errorf("unable to unmarshal json")
@@ -42,7 +42,7 @@ func getContextAndTests(db resolvers.Database, key string) (*pb.ValueType, error
 	return &value, nil
 }
 
-func setContextAndTests(db resolvers.Database, key string, value *pb.ValueType) (*pb.ResultType, error) {
+func setContextAndTests(db resolvers.Database, key string, value *pb.CachedContents) (*pb.ResultType, error) {
 
 	valBytes, err := json.Marshal(value)
 	if err != nil {
