@@ -5,24 +5,28 @@ import (
 
 	pb "github.com/codesourcerer-bot/proto/generated"
 
-	"github.com/codesourcerer-bot/github/lib/gh"
+	"github.com/codesourcerer-bot/github/lib"
 )
 
-func PushNewBranchWithTests(installationToken, owner, repo, baseBranch, newBranch, cacheResult string, tests *pb.GeneratedTestsResponse) error {
+func PushNewBranchWithTests(owner, repo, baseBranch, newBranch, cacheResult string, tests *pb.GeneratedTestsResponse) error {
 
 	// Get GitHub client
-	client, ctx := gh.GetClient(installationToken)
+	client, ctx, err := lib.GetClient()
+	if err != nil {
+		log.Printf("Error creating branch: %v", err)
+		return err
+	}
 
 	// Create a new branch
-	err := gh.CreateBranch(client, ctx, owner, repo, baseBranch, newBranch)
+	err = lib.CreateBranch(client, ctx, owner, repo, baseBranch, newBranch)
 	if err != nil {
-		log.Fatalf("Error creating branch: %v", err)
+		log.Printf("Error creating branch: %v", err)
 		return err
 	}
 
 	// Add the test files with content
 	for _, testFile := range tests.Tests {
-		err = gh.CreateFiles(client, ctx, owner, repo, newBranch, testFile.GetTestfilepath(), testFile.GetCode())
+		err = lib.CreateFiles(client, ctx, owner, repo, newBranch, testFile.GetTestfilepath(), testFile.GetCode())
 		if err != nil {
 			log.Fatalf("Error creating file %s: %v", testFile.Testfilepath, err)
 			return err
@@ -48,7 +52,7 @@ func PushNewBranchWithTests(installationToken, owner, repo, baseBranch, newBranc
 		prBody = "This PR could not be cached!"
 	}
 
-	err = gh.CreatePR(client, ctx, owner, repo, prTitle, newBranch, defaultBranch, prBody)
+	err = lib.CreatePR(client, ctx, owner, repo, prTitle, newBranch, defaultBranch, prBody)
 	if err != nil {
 		log.Fatalf("Error creating draft PR: %v", err)
 		return err
@@ -58,11 +62,14 @@ func PushNewBranchWithTests(installationToken, owner, repo, baseBranch, newBranc
 	return nil
 }
 
-func CommitRetriedTests(installationToken, owner, repo, branch string, tests *pb.GeneratedTestsResponse) error {
-	client, ctx := gh.GetClient(installationToken)
+func CommitRetriedTests(owner, repo, branch string, tests *pb.GeneratedTestsResponse) error {
+	client, ctx, err := lib.GetClient()
+	if err != nil {
+		return err
+	}
 
 	for _, testFile := range tests.Tests {
-		err := gh.CreateFiles(client, ctx, owner, repo, branch, testFile.GetTestfilepath(), testFile.GetCode())
+		err := lib.CreateFiles(client, ctx, owner, repo, branch, testFile.GetTestfilepath(), testFile.GetCode())
 		if err != nil {
 			log.Fatalf("Error creating file %s: %v", testFile.Testfilepath, err)
 			return err

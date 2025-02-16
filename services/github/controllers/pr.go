@@ -8,8 +8,7 @@ import (
 	pb "github.com/codesourcerer-bot/proto/generated"
 
 	"github.com/codesourcerer-bot/github/connections"
-	"github.com/codesourcerer-bot/github/lib/gh"
-	"github.com/codesourcerer-bot/github/lib/token"
+	"github.com/codesourcerer-bot/github/lib"
 	"github.com/codesourcerer-bot/github/resolvers"
 	"github.com/codesourcerer-bot/github/utils"
 	"github.com/codesourcerer-bot/github/validators"
@@ -34,14 +33,14 @@ func PullRequestHandler(c *gin.Context) error {
 
 	pullRequestNumber, commitSHA := prBody.GetPRInfo()
 
-	ymlConfig := gh.FetchYmlConfig(repoOwner, repoName, commitSHA)
+	ymlConfig := lib.FetchYmlConfig(repoOwner, repoName, commitSHA)
 
 	if baseBranch != ymlConfig.Configuration.TestingBranch {
 		c.Status(http.StatusNoContent)
 		return nil
 	}
 
-	prDescription, err := gh.FetchPullRequestDescription(repoOwner, repoName, pullRequestNumber)
+	prDescription, err := lib.FetchPullRequestDescription(repoOwner, repoName, pullRequestNumber)
 	if err != nil {
 		log.Printf("Unable to fetch pull request description: %v", err)
 		return fmt.Errorf("unable to fetch pull request description")
@@ -49,7 +48,7 @@ func PullRequestHandler(c *gin.Context) error {
 
 	dependencies, context := utils.ParsePRDescription(prDescription)
 
-	changedFiles, err := gh.FetchPullRequestFiles(repoOwner, repoName, pullRequestNumber)
+	changedFiles, err := lib.FetchPullRequestFiles(repoOwner, repoName, pullRequestNumber)
 	if err != nil {
 		log.Printf("Unable to fetch changed files: %v", err)
 		return fmt.Errorf("unable to fetch changed files")
@@ -59,7 +58,7 @@ func PullRequestHandler(c *gin.Context) error {
 	fileChan = resolvers.GetDependencyContents(fileChan, dependencies, repoOwner, repoName, commitSHA)
 
 	mergeID := fmt.Sprintf("merge_%s_%d", commitSHA, pullRequestNumber)
-	genConfig := gh.GetGenerationOptions(ymlConfig)
+	genConfig := lib.GetGenerationOptions(ymlConfig)
 	payload := pb.GithubContextRequest{
 		MergeId: mergeID,
 		Context: context,
@@ -76,17 +75,11 @@ func PullRequestHandler(c *gin.Context) error {
 		return fmt.Errorf("error forwarding payload to GenAI Service")
 	}
 
-	token, err := token.GetInstance().GetToken()
-	if err != nil {
-		log.Printf("Error getting token: %v", err)
-		return fmt.Errorf("error getting token")
-	}
-
 	newBranch := utils.GetRandomBranch()
 
 	cacheResult := resolvers.CachePullRequest(ymlConfig.Caching.Enabled, repoOwner, repoName, newBranch, payload.GetFiles(), generatedTests.GetTests())
 
-	err = resolvers.PushNewBranchWithTests(token, repoOwner, repoName, ymlConfig.Configuration.TestingBranch, newBranch, cacheResult, generatedTests)
+	err = resolvers.PushNewBranchWithTests(repoOwner, repoName, ymlConfig.Configuration.TestingBranch, newBranch, cacheResult, generatedTests)
 	if err != nil {
 		log.Printf("Error finalizing: %v", err)
 		return fmt.Errorf("error finalizing")

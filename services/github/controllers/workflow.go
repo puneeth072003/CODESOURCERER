@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/codesourcerer-bot/github/connections"
-	"github.com/codesourcerer-bot/github/lib/token"
+	"github.com/codesourcerer-bot/github/lib"
 	"github.com/codesourcerer-bot/github/resolvers"
 	"github.com/codesourcerer-bot/github/validators"
 	pb "github.com/codesourcerer-bot/proto/generated"
@@ -54,7 +54,7 @@ func WorkflowHandler(ctx *gin.Context) error {
 		return nil
 	}
 
-	logs, err := resolvers.FetchLogs(jobUrl, owner, repoName)
+	logs, err := lib.FetchLogs(jobUrl, owner, repoName)
 	if err != nil {
 		return err
 	}
@@ -80,13 +80,12 @@ func WorkflowHandler(ctx *gin.Context) error {
 		return fmt.Errorf("unable to update cache")
 	}
 
-	token, err := token.GetInstance().GetToken()
 	if err != nil {
 		log.Printf("Error getting token: %v", err)
 		return fmt.Errorf("error getting token")
 	}
 
-	if err = resolvers.CommitRetriedTests(token, owner, repoName, branchName, generatedTests); err != nil {
+	if err = resolvers.CommitRetriedTests(owner, repoName, branchName, generatedTests); err != nil {
 		log.Printf("unable to commit test files: %v", err)
 		return fmt.Errorf("unable to commit test files")
 	}

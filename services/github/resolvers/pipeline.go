@@ -4,7 +4,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/codesourcerer-bot/github/lib/gh"
+	"github.com/codesourcerer-bot/github/lib"
 	"github.com/codesourcerer-bot/github/utils"
 
 	pb "github.com/codesourcerer-bot/proto/generated"
@@ -17,7 +17,7 @@ func GetFileContents(fileContents []map[string]interface{}, repoOwner, repoName,
 		for _, f := range fileContents {
 			filePath := f["filename"].(string)
 
-			fileContent, err := gh.FetchFileFromGitHub(repoOwner, repoName, commitSHA, filePath)
+			fileContent, err := lib.FetchFileFromGitHub(repoOwner, repoName, commitSHA, filePath)
 			if err != nil {
 				log.Printf("Unable to fetch file content for %s: %v", filePath, err)
 				fileContent = "Error fetching content"
@@ -51,7 +51,7 @@ func GetDependencyContents(fileChan <-chan *pb.SourceFilePayload, dependencies m
 				go func(channel chan<- *pb.SourceFileDependencyPayload, dep string) {
 					defer wg.Done()
 
-					depContent, err := gh.FetchFileFromGitHub(repoOwner, repoName, commitSHA, dep)
+					depContent, err := lib.FetchFileFromGitHub(repoOwner, repoName, commitSHA, dep)
 					if err != nil {
 						log.Printf("Unable to fetch content for dependency %s: %v", dep, err)
 						depContent = "Error fetching content"
