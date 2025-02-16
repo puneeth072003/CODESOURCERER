@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/codesourcerer-bot/database/handlers"
@@ -20,7 +19,7 @@ func main() {
 
 	grpcServer := handlers.GetGrpcServer(db)
 
-	fmt.Println("Database gRPC Server started at PORT ", port)
+	log.Println("Database gRPC Server started at PORT ", port)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("Unable to gRPC Server: %v", err)
