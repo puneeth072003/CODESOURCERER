@@ -1,7 +1,6 @@
 package resolvers
 
 import (
-	"fmt"
 	"log"
 
 	pb "github.com/codesourcerer-bot/proto/generated"
@@ -37,16 +36,16 @@ func PushNewBranchWithTests(installationToken, owner, repo, baseBranch, newBranc
 
 	defaultBranch := repoInfo.GetDefaultBranch()
 
-	prTitle := "chore: tests generated for the code added"                // hardcoded for now
-	prBody := "### This is a draft PR created from the sandbox branch.\n" // hardcoded for now
+	prTitle := "chore: tests generated for the code added"            // hardcoded for now
+	prBody := "This is a draft PR created from the sandbox branch.\n" // hardcoded for now
 
 	switch cacheResult {
 
 	case "DONE":
-		prBody += "> This PR has been cached!"
+		prBody += "This PR has been cached!"
 
 	case "ERROR":
-		prBody = "> This PR could not be cached!"
+		prBody = "This PR could not be cached!"
 	}
 
 	err = gh.CreatePR(client, ctx, owner, repo, prTitle, newBranch, defaultBranch, prBody)
@@ -55,6 +54,20 @@ func PushNewBranchWithTests(installationToken, owner, repo, baseBranch, newBranc
 		return err
 	}
 
-	fmt.Println("Successfully created draft PR from sandbox branch")
+	log.Println("Successfully created draft PR from sandbox branch")
+	return nil
+}
+
+func CommitRetriedTests(installationToken, owner, repo, branch string, tests *pb.GeneratedTestsResponse) error {
+	client, ctx := gh.GetClient(installationToken)
+
+	for _, testFile := range tests.Tests {
+		err := gh.CreateFiles(client, ctx, owner, repo, branch, testFile.GetTestfilepath(), testFile.GetCode())
+		if err != nil {
+			log.Fatalf("Error creating file %s: %v", testFile.Testfilepath, err)
+			return err
+		}
+	}
+
 	return nil
 }
