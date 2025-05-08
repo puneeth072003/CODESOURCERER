@@ -67,14 +67,9 @@
 
 ## About The Project
 
-<center>
-  <video width="600" autoplay loop muted>
-    <source src="./docs/assets/CS-demo.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
-</center>
-
-[**Click Here for demo Video**](https://github.com/puneeth072003/CODESOURCERER/blob/main/docs/assets/CS-demo.mp4)
+<p align="center">
+  <a href="https://youtu.be/N-qHE2Hjy90" autoplay loop>Click here to watch the CS-demo video</a>
+</p>
 
 Our tool seamlessly integrates with GitHub to automate test generation for code changes. It detects modifications in your repository, sends requests to a proxy server, and interacts with a Generative AI API to generate relevant tests. These tests are automatically added alongside the developer’s changes and merged into the main branch.
 
