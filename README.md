@@ -68,10 +68,7 @@
 ## About The Project
 
 <center>
-  <video width="600" autoplay loop muted>
-    <source src="./assests/CS-demo.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
+  ![Demo](assests/CS-demo.gif)
 </center>
 
 Our tool seamlessly integrates with GitHub to automate test generation for code changes. It detects modifications in your repository, sends requests to a proxy server, and interacts with a Generative AI API to generate relevant tests. These tests are automatically added alongside the developer’s changes and merged into the main branch.
