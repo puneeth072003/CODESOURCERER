@@ -74,6 +74,8 @@
   </video>
 </center>
 
+[**Click Here for demo Video**](https://github.com/puneeth072003/CODESOURCERER/blob/main/docs/assets/CS-demo.mp4)
+
 Our tool seamlessly integrates with GitHub to automate test generation for code changes. It detects modifications in your repository, sends requests to a proxy server, and interacts with a Generative AI API to generate relevant tests. These tests are automatically added alongside the developer’s changes and merged into the main branch.
 
 *For a detailed workflow explanation, see below.*
