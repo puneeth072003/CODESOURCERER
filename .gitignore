@@ -9,3 +9,5 @@ data/
 *.hcl
 *.json
 go.work.sum
+deployment/
+terraform/
