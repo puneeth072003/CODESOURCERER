@@ -65,10 +65,6 @@
 
 ## About The Project
 
-<p align="center">
-  <a href="https://youtu.be/N-qHE2Hjy90" autoplay loop>Click here to watch the CS-demo video</a>
-</p>
-
 Our tool seamlessly integrates with GitHub to automate test generation for code changes. It detects modifications in your repository, sends requests to a proxy server, and interacts with a Generative AI API to generate relevant tests. These tests are automatically added alongside the developer’s changes and merged into the main branch.
 
 *For a detailed workflow explanation, see below.*
