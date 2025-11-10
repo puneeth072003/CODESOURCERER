@@ -2,13 +2,21 @@ package connections
 
 import (
 	"context"
+	"os"
 	"time"
 
 	pb "github.com/codesourcerer-bot/proto/generated"
 )
 
+func getGenAIURL() string {
+	if url := os.Getenv("GENAI_SERVICE_URL"); url != "" {
+		return url
+	}
+	return ":9001" // default fallback
+}
+
 func GetGeneratedTestsFromGenAI(payload *pb.GithubContextRequest) (*pb.GeneratedTestsResponse, error) {
-	conn, err := getGrpcConnection(":9001")
+	conn, err := getGrpcConnection(getGenAIURL())
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +36,7 @@ func GetGeneratedTestsFromGenAI(payload *pb.GithubContextRequest) (*pb.Generated
 }
 
 func GetRetriedTestsFromGenAI(payload *pb.RetryMechanismPayload) (*pb.GeneratedTestsResponse, error) {
-	conn, err := getGrpcConnection(":9001")
+	conn, err := getGrpcConnection(getGenAIURL())
 	if err != nil {
 		return nil, err
 	}

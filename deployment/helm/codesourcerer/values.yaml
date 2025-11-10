@@ -1,0 +1,154 @@
+# Default values for codesourcerer
+# This is a YAML-formatted file.
+
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# Secrets configuration
+secrets:
+  # Set to true if using external secrets (e.g., SealedSecrets, External Secrets Operator)
+  # When true, the secrets.yaml template will not be rendered
+  # You must provide secrets through another mechanism
+  useExternalSecret: false
+
+  # Name of the external secret to use (if useExternalSecret is true)
+  # This should match the name of your SealedSecret or ExternalSecret resource
+  externalSecretName: "codesourcerer-sealed-secrets"
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+  replica:
+    replicaCount: 1
+
+# Database service configuration
+database:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: codesourcerer/database
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  env:
+    PORT: "8080"
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Gen-AI service configuration
+genai:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: codesourcerer/gen-ai
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8081
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    PORT: "8081"
+    GEMINI_API_KEY: ""
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# GitHub service configuration
+github:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: codesourcerer/github
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  service:
+    type: LoadBalancer
+    port: 3000
+    targetPort: 3000
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  env:
+    PORT: "3000"
+    GITHUB_APP_ID: ""
+    GITHUB_PRIVATE_KEY: ""
+    GITHUB_WEBHOOK_SECRET: ""
+    PAT_TOKEN: ""
+    INSTALLATION_ID: ""
+    BOT_EMAIL: ""
+    PRIVATE_KEY_PATH: ""
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: codesourcerer.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Service Account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Pod Security Context
+podSecurityContext:
+  fsGroup: 1001
+
+# Security Context
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1001
+  capabilities:
+    drop:
+    - ALL
+
+# Autoscaling
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1

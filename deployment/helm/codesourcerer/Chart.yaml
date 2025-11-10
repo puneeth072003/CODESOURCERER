@@ -1,0 +1,23 @@
+apiVersion: v2
+name: codesourcerer
+description: A Helm chart for CodeSourcerer microservices
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - codesourcerer
+  - microservices
+  - github
+  - ai
+  - testing
+home: https://github.com/codesourcerer-bot/codesourcerer
+sources:
+  - https://github.com/codesourcerer-bot/codesourcerer
+maintainers:
+  - name: CodeSourcerer Team
+    email: team@codesourcerer.dev
+dependencies:
+  - name: redis
+    version: "18.1.5"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled

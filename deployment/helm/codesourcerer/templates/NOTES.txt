@@ -1,0 +1,43 @@
+1. Get the application URL by running these commands:
+{{- if .Values.ingress.enabled }}
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.github.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "codesourcerer.fullname" . }}-github)
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.github.service.type }}
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "codesourcerer.fullname" . }}-github'
+  export SERVICE_IP=$(kubectl get svc --namespace {{ .Release.Namespace }} {{ include "codesourcerer.fullname" . }}-github --template "{{"{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}"}}")
+  echo http://$SERVICE_IP:{{ .Values.github.service.port }}
+{{- else if contains "ClusterIP" .Values.github.service.type }}
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "codesourcerer.name" . }},app.kubernetes.io/instance={{ .Release.Name }},app.kubernetes.io/component=github" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:$CONTAINER_PORT
+{{- end }}
+
+2. Check the status of your deployment:
+   kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/instance={{ .Release.Name }}"
+
+3. View logs:
+   kubectl logs --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "codesourcerer.name" . }},app.kubernetes.io/component=github"
+   kubectl logs --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "codesourcerer.name" . }},app.kubernetes.io/component=database"
+   kubectl logs --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "codesourcerer.name" . }},app.kubernetes.io/component=genai"
+
+4. To configure secrets, update your values.yaml file with:
+   genai:
+     env:
+       GEMINI_API_KEY: "your-actual-gemini-api-key"
+   github:
+     env:
+       GITHUB_APP_ID: "your-github-app-id"
+       GITHUB_PRIVATE_KEY: "your-github-private-key"
+       GITHUB_WEBHOOK_SECRET: "your-webhook-secret"
+
+   Then upgrade the release:
+   helm upgrade {{ .Release.Name }} ./deployment/helm/codesourcerer

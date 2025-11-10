@@ -1,0 +1,70 @@
+{{- if .Values.genai.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "codesourcerer.fullname" . }}-genai
+  labels:
+    {{- include "codesourcerer.labels" . | nindent 4 }}
+    app.kubernetes.io/component: genai
+spec:
+  replicas: {{ .Values.genai.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "codesourcerer.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: genai
+  template:
+    metadata:
+      labels:
+        {{- include "codesourcerer.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: genai
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "codesourcerer.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: genai
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.genai.image.repository }}:{{ .Values.genai.image.tag }}"
+          imagePullPolicy: {{ .Values.genai.image.pullPolicy }}
+          ports:
+            - name: grpc
+              containerPort: {{ .Values.genai.service.port }}
+              protocol: TCP
+          env:
+            - name: PORT
+              value: {{ .Values.genai.env.PORT | quote }}
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "codesourcerer.fullname" . }}-secrets
+                  key: gemini-api-key
+          livenessProbe:
+            tcpSocket:
+              port: grpc
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: grpc
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            {{- toYaml .Values.genai.resources | nindent 12 }}
+      {{- with .Values.genai.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.genai.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.genai.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

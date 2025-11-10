@@ -2,13 +2,21 @@ package connections
 
 import (
 	"context"
+	"os"
 	"time"
 
 	pb "github.com/codesourcerer-bot/proto/generated"
 )
 
+func getDatabaseURL() string {
+	if url := os.Getenv("DATABASE_SERVICE_URL"); url != "" {
+		return url
+	}
+	return ":9002" // default fallback
+}
+
 func GetContextAndTestsFromDatabase(key string) (*pb.CachedContents, error) {
-	conn, err := getGrpcConnection(":9002")
+	conn, err := getGrpcConnection(getDatabaseURL())
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +36,7 @@ func GetContextAndTestsFromDatabase(key string) (*pb.CachedContents, error) {
 }
 
 func SetContextAndTestsToDatabase(key string, ctx []*pb.SourceFilePayload, tests []*pb.TestFilePayload) (bool, error) {
-	conn, err := getGrpcConnection(":9002")
+	conn, err := getGrpcConnection(getDatabaseURL())
 	if err != nil {
 		return false, err
 	}
@@ -50,7 +58,7 @@ func SetContextAndTestsToDatabase(key string, ctx []*pb.SourceFilePayload, tests
 }
 
 func DeleteContextAndTestsToDatabase(key string) (bool, error) {
-	conn, err := getGrpcConnection(":9002")
+	conn, err := getGrpcConnection(getDatabaseURL())
 	if err != nil {
 		return false, err
 	}
@@ -70,7 +78,7 @@ func DeleteContextAndTestsToDatabase(key string) (bool, error) {
 }
 
 func GetRetryExhaustionStatus(key string) (bool, error) {
-	conn, err := getGrpcConnection(":9002")
+	conn, err := getGrpcConnection(getDatabaseURL())
 	if err != nil {
 		return false, err
 	}

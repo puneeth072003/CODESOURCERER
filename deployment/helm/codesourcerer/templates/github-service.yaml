@@ -1,0 +1,19 @@
+{{- if .Values.github.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "codesourcerer.fullname" . }}-github
+  labels:
+    {{- include "codesourcerer.labels" . | nindent 4 }}
+    app.kubernetes.io/component: github
+spec:
+  type: {{ .Values.github.service.type }}
+  ports:
+    - port: {{ .Values.github.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "codesourcerer.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: github
+{{- end }}

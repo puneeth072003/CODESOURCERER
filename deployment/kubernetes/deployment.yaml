@@ -1,0 +1,310 @@
+---
+# Redis Deployment for Database Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+
+---
+# Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+spec:
+  selector:
+    app: redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+  type: ClusterIP
+
+---
+# ConfigMap for common configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  DATABASE_PORT: "8080"
+  GENAI_PORT: "8081"
+  GITHUB_PORT: "3000"
+  DATABASE_URL: "redis://redis-service:6379"
+
+---
+# Database Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database-service
+  labels:
+    app: database-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database-service
+  template:
+    metadata:
+      labels:
+        app: database-service
+    spec:
+      containers:
+      - name: database-service
+        image: codesourcerer/database:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: DATABASE_PORT
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: DATABASE_URL
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+# Database Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: database-service
+spec:
+  selector:
+    app: database-service
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP
+
+---
+# Gen-AI Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genai-service
+  labels:
+    app: genai-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: genai-service
+  template:
+    metadata:
+      labels:
+        app: genai-service
+    spec:
+      containers:
+      - name: genai-service
+        image: codesourcerer/gen-ai:latest
+        ports:
+        - containerPort: 8081
+        env:
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: GENAI_PORT
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: GEMINI_API_KEY
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          tcpSocket:
+            port: 8081
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+# Gen-AI Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: genai-service
+spec:
+  selector:
+    app: genai-service
+  ports:
+  - port: 8081
+    targetPort: 8081
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-service
+  labels:
+    app: github-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: github-service
+  template:
+    metadata:
+      labels:
+        app: github-service
+    spec:
+      containers:
+      - name: github-service
+        image: codesourcerer/github:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: GITHUB_PORT
+        - name: PAT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: PAT_TOKEN
+        - name: APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: APP_ID
+        - name: INSTALLATION_ID
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: INSTALLATION_ID
+        - name: BOT_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: BOT_EMAIL
+        - name: PRIVATE_KEY_PATH
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: PRIVATE_KEY_PATH
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /testsend
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /testsend
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+# GitHub Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: github-service
+spec:
+  selector:
+    app: github-service
+  ports:
+  - port: 3000
+    targetPort: 3000
+  type: LoadBalancer
+
+---
+# Ingress for external access (optional)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: codesourcerer-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: codesourcerer.local
+    http:
+      paths:
+      - path: /webhook
+        pathType: Prefix
+        backend:
+          service:
+            name: github-service
+            port:
+              number: 3000
+      - path: /testsend
+        pathType: Prefix
+        backend:
+          service:
+            name: github-service
+            port:
+              number: 3000
+      - path: /testfinalizer
+        pathType: Prefix
+        backend:
+          service:
+            name: github-service
+            port:
+              number: 3000

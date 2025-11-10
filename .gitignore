@@ -2,12 +2,76 @@
 *.out
 *.so
 *.dll
+
+# Environment and secrets
 .env
+.env.*
+!.env.example
+
+# Keys and certificates
 keys/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Temporary and data directories
 tmp/
 data/
+logs/
+
+# Terraform and Vault
 *.hcl
+*.tfstate
+*.tfstate.backup
+
+# JSON files (may contain secrets)
 *.json
+!package.json
+!tsconfig.json
+!**/templates/**/*.json
+
+# Go
 go.work.sum
-deployment/
-terraform/
+
+# Kubernetes secrets (never commit actual secrets)
+deployment/kubernetes/secrets.yaml
+deployment/kubernetes/*-secrets.yaml
+**/secrets.yaml
+!**/secrets.example.yaml
+!**/sealed-secrets.yaml
+
+# Helm values with secrets
+deployment/helm/**/values-secrets.yaml
+deployment/helm/**/values-prod.yaml
+deployment/helm/**/values-*.yaml
+!deployment/helm/**/values.yaml
+!deployment/helm/**/values-dev.yaml
+
+# Scripts directory (may contain sensitive automation)
+deployment/scripts/
+scripts/*.ps1
+scripts/*.sh
+!scripts/README.md
+
+# FluxCD - ignore local overrides but keep base configs
+clusters/*/flux-system/gotk-sync.yaml
+clusters/*/flux-system/kustomization.yaml
+
+# Docker Compose with secrets
+docker-compose.yml
+docker-compose.*.yml
+!docker-compose.example.yml
+deployment/docker-compose/docker-compose.yml
+deployment/docker-compose/docker-compose.*.yml
+!deployment/docker-compose/docker-compose.example.yml
+
+# IDE and OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

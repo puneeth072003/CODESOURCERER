@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  database:
+    image: codesourcerer/database:latest
+    ports:
+      - "8082:8080"
+    environment:
+      - DATABASE_URL=redis://redis:6379
+      - PORT=8080
+    depends_on:
+      - redis
+
+  gen-ai:
+    image: codesourcerer/gen-ai:latest
+    ports:
+      - "8083:8081"
+    environment:
+      - DATABASE_URL=database:8080
+      - PORT=8081
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-your-gemini-api-key}
+    depends_on:
+      - database
+
+  github:
+    image: codesourcerer/github:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - DATABASE_SERVICE_URL=database:8080
+      - GENAI_SERVICE_URL=gen-ai:8081
+      - PORT=3000
+      - GITHUB_APP_ID=${GITHUB_APP_ID:-your-app-id}
+      - GITHUB_PRIVATE_KEY=${GITHUB_PRIVATE_KEY:-your-private-key}
+      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET:-your-webhook-secret}
+    depends_on:
+      - database
+      - gen-ai
+
+volumes:
+  redis_data:

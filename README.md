@@ -172,10 +172,33 @@ For development purposes, we recommend creating your own GitHub App with all nec
 Now your development environment is set up and ready to go! 🚀
 
 
+<!-- DEPLOYMENT -->
+## Deployment
+
+For detailed deployment instructions including Docker Compose, Kubernetes, Helm, Sealed Secrets, and FluxCD GitOps configurations, please refer to the comprehensive deployment guide:
+
+**📖 [Deployment Documentation](deployment/README.md)**
+
+### Quick Deployment Options
+
+| Method | Best For | Quick Start |
+|--------|----------|-------------|
+| **Docker Compose** | Local development | `cd deployment/docker-compose && docker-compose up` |
+| **Kubernetes + Helm** | Production deployments | `./deployment/scripts/deploy-helm.ps1 install` |
+| **FluxCD GitOps** | Automated deployments | See [deployment/README.md](deployment/README.md#fluxcd-gitops-integration) |
+
+The deployment guide includes:
+- ✅ Complete setup instructions for all deployment methods
+- ✅ Sealed Secrets configuration for secure secret management
+- ✅ FluxCD GitOps integration for automated deployments
+- ✅ Comprehensive troubleshooting guide
+- ✅ Security best practices and checklists
+- ✅ Architecture diagrams and service communication flows
+
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-We are currently working on comprehensive documentation covering various use cases. Stay tuned for updates!  
+We are currently working on comprehensive documentation covering various use cases. Stay tuned for updates!
 
 In the meantime, feel free to explore the project and check back soon for detailed usage examples.
 

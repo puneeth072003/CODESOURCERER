@@ -1,0 +1,19 @@
+{{- if .Values.database.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "codesourcerer.fullname" . }}-database
+  labels:
+    {{- include "codesourcerer.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  type: {{ .Values.database.service.type }}
+  ports:
+    - port: {{ .Values.database.service.port }}
+      targetPort: grpc
+      protocol: TCP
+      name: grpc
+  selector:
+    {{- include "codesourcerer.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+{{- end }}
