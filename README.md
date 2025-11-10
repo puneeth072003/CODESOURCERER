@@ -28,8 +28,6 @@
     <a href="https://github.com/puneeth072003/CODESOURCERER/"><strong>Explore the repo »</strong></a>
     <br />
     <br />
-    <a href="https://codesourcerer.webflow.io">View Website</a>
-    &middot;
     <a href="https://github.com/puneeth072003/CODESOURCERER/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
     &middot;
     <a href="https://github.com/puneeth072003/CODESOURCERER/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
